@@ -73,23 +73,23 @@ export default function SettingsPage() {
         </div>
 
         {/* Live Connection Test Card */}
-        <div className="p-5 rounded-xl bg-forge-900 border border-forge-800 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
+        <div className="p-5 rounded-xl bg-forge-900 border border-forge-800 space-y-4 overflow-hidden">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
               <h2 className="text-sm font-semibold text-white flex items-center gap-2">
                 <Zap className="w-4 h-4 text-cyan-400" />
                 Live Connection Diagnostic
               </h2>
-              <p className="text-xs text-forge-400 mt-0.5">
+              <p className="text-xs text-forge-400 mt-1 max-w-xl leading-relaxed">
                 Send a non-destructive verification ping to Nebius Token Factory to measure latency and test authentication.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
               <select
                 value={selectedModelForTest}
                 onChange={(e) => setSelectedModelForTest(e.target.value)}
-                className="px-3 py-1.5 bg-forge-950 border border-forge-800 rounded-md text-xs font-mono text-white focus:border-cyan-500"
+                className="px-3 py-1.5 bg-forge-950 border border-forge-800 rounded-md text-xs font-mono text-white focus:border-cyan-500 max-w-[230px] truncate"
               >
                 {VERIFIED_NEBIUS_MODELS.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -101,7 +101,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleTestConnection}
                 disabled={isTesting}
-                className="px-4 py-1.5 rounded-md text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-forge-950 shadow-md shadow-cyan-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+                className="px-3.5 py-1.5 rounded-md text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-forge-950 shadow-md shadow-cyan-500/20 transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap shrink-0"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? "animate-spin" : ""}`} />
                 {isTesting ? "Testing Ping..." : "Test Connection"}
@@ -183,9 +183,9 @@ export default function SettingsPage() {
                 <Key className="w-3.5 h-3.5 text-amber-400" />
                 Server-Side Secret Isolation
               </div>
-              <div className="text-xs font-mono text-white flex items-center justify-between">
+              <div className="text-xs font-mono text-white flex items-center justify-between gap-2">
                 <span>Key Mask:</span>
-                <span className="text-cyan-400">{modelConfig?.maskedApiKey || "••••••••••••"}</span>
+                <span className="text-cyan-400 font-bold tracking-wider truncate">{modelConfig?.maskedApiKey || "••••••••••••"}</span>
               </div>
               <p className="text-[11px] text-forge-400">
                 Loaded exclusively in server runtime via <code className="text-cyan-300">process.env.NEBIUS_API_KEY</code>. Never bundled into browser assets or child subprocesses.

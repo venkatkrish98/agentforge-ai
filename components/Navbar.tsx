@@ -25,15 +25,14 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     async function checkStatus() {
       try {
-        const res = await fetch("/api/models/test", { method: "POST" });
+        const res = await fetch("/api/models");
         const data = await res.json();
-        if (data?.result) {
+        if (data) {
           setModelStatus({
-            provider: data.result.provider,
-            model: data.result.model,
-            hasKey: data.result.hasValidApiKey,
-            latencyMs: data.result.latencyMs,
-            status: data.result.status
+            provider: data.provider || "Nebius Token Factory",
+            model: data.defaultModel || "nvidia/Nemotron-3_5-Lightning",
+            hasKey: data.hasApiKey || false,
+            status: data.hasApiKey ? "ready" : "mock"
           });
         }
       } catch {
@@ -120,7 +119,12 @@ export const Navbar: React.FC = () => {
             <span className="text-forge-300 truncate max-w-[180px]">
               {modelStatus.model.replace("nvidia/", "")}
             </span>
-            {modelStatus.status === "connected" ? (
+            {modelStatus.status === "ready" ? (
+              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-800/40">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Configured
+              </span>
+            ) : modelStatus.status === "connected" ? (
               <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-800/40">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 {modelStatus.latencyMs ? `${modelStatus.latencyMs}ms` : "Live"}
@@ -131,7 +135,7 @@ export const Navbar: React.FC = () => {
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-[10px] text-slate-400">
-                Checking...
+                Offline
               </span>
             )}
           </div>

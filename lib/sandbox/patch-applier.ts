@@ -2,7 +2,7 @@ import * as diff from "diff";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { FileChange } from "@/lib/types/task";
-import { validateSafeWorkspacePath } from "./path-validator";
+import { validateSafeWorkspacePath, validateSafePathWithSymlinkGuard } from "./path-validator";
 
 export interface Snapshot {
   id: string;
@@ -57,7 +57,7 @@ export async function createWorkspaceSnapshot(
   };
 
   for (const relPath of targetFiles) {
-    const val = validateSafeWorkspacePath(workspaceRoot, relPath);
+    const val = await validateSafePathWithSymlinkGuard(workspaceRoot, relPath);
     if (!val.isValid || !val.safeRelativePath) continue;
 
     const fullPath = path.join(workspaceRoot, val.safeRelativePath);
@@ -86,7 +86,7 @@ export async function rollbackWorkspaceSnapshot(
 ): Promise<{ restoredCount: number }> {
   let count = 0;
   for (const file of snapshot.files) {
-    const val = validateSafeWorkspacePath(workspaceRoot, file.path);
+    const val = await validateSafePathWithSymlinkGuard(workspaceRoot, file.path);
     if (!val.isValid || !val.safeRelativePath) continue;
 
     const fullPath = path.join(workspaceRoot, val.safeRelativePath);
@@ -108,7 +108,7 @@ export async function applyFileChanges(
   const errors: string[] = [];
 
   for (const change of changes) {
-    const val = validateSafeWorkspacePath(workspaceRoot, change.path);
+    const val = await validateSafePathWithSymlinkGuard(workspaceRoot, change.path);
     if (!val.isValid || !val.safeRelativePath) {
       errors.push(`Invalid path rejected: ${change.path} (${val.error})`);
       continue;

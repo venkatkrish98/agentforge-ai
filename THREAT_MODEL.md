@@ -37,10 +37,12 @@ AgentForge AI executes code generation and test execution tasks on behalf of sof
   - Shell metacharacters (`;&|`$<>` and newlines) are rejected immediately.
   - Direct execution of binary processes without shell invocation on Windows for Node binaries.
 
-### 2.4 Threat Vector 4: Path Traversal & Device Name Exploits
-- **Attack:** Proposed patches target `../../../../etc/shadow` or Windows reserved device files like `CON`, `PRN`, or `NUL`.
+### 2.4 Threat Vector 4: Path Traversal, Sibling Directory Escapes & Symlinks
+- **Attack:** Proposed patches or directory walks target `../../../../etc/shadow`, sibling directories sharing a common prefix (e.g. `/workspace-evil` vs `/workspace`), Windows device names, or symlinks pointing outside the workspace.
 - **Mitigation:**
-  - `validateSafeWorkspacePath()` enforces that the resolved absolute path starts strictly with the workspace root directory.
+  - `isPathInside()` uses separator-aware `path.relative` checking (`!rel.startsWith("..") && !path.isAbsolute(rel)`) rather than naive substring matching.
+  - `validateSafePathWithSymlinkGuard()` rejects symlink creation and verifies real canonical paths via `fs.realpathSync.native` to block symlink traversal outside the workspace.
+  - Workspace directory tree walks explicitly set `withFileTypes: true` and ignore symlinks, skipping any external realpaths.
   - Path traversal tokens (`..` and `.`) in segments are rejected.
   - Null bytes (`\0`) are checked and rejected.
   - Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) are blocked.
@@ -55,6 +57,22 @@ AgentForge AI executes code generation and test execution tasks on behalf of sof
   - Test subprocesses are capped by a 15-second execution timeout and killed via `SIGKILL`.
   - Output stdout/stderr buffers are capped at 100KB to prevent memory overflow.
 
+### 2.6 Threat Vector 6: Subprocess Execution vs Container Sandboxing (Architecture Disclosure)
+- **Current Architecture:** The test runner executes processes locally as a host child process (`node:child_process.spawn`) with:
+  - Strict command allowlist (`node --test`, `npm test`, `npx vitest run`).
+  - Strict environment sanitization (redacting all keys, tokens, and credentials).
+  - Explicit cwd binding to the workspace directory.
+  - Execution timeout (15 seconds) and max buffer caps (100 KB).
+- **Limitation & Disclosure:** The runner currently runs on the host system without OS-level namespace, cgroup, or container isolation (e.g., Docker, Firecracker, or gVisor). Because `npm test` can trigger arbitrary scripts defined in a repository's `package.json`, **AgentForge AI is framed as a developer assistant for trusted/semi-trusted local projects, not a multi-tenant untrusted execution sandbox**.
+- **Roadmap for Untrusted Multi-Tenant Sandboxing:** For enterprise deployments running arbitrary untrusted third-party code, the execution runner should be swapped to an isolated container/microVM (such as Docker with `--read-only`, no network access, or gVisor sandbox).
+
+### 2.7 Threat Vector 7: Cross-Origin Request Forgery (CSRF) & State Mutation
+- **Attack:** Malicious websites open in the developer's browser triggering background POST requests to `http://localhost:3000/api/tasks/reset` or `/api/models/test`.
+- **Mitigation:**
+  - `validateLocalMutationRequest()` validates incoming `Origin` and `Referer` headers against `localhost`, `127.0.0.1`, and `[::1]`.
+  - Mutation endpoints (`/api/tasks`, `/reset`, `/plan`, `/approve`, `/reject`, `/models/test`) reject non-matching origins with `403 Forbidden`.
+  - Navbar does not trigger automatic live inference requests on page load; model tests are strictly user-initiated from `/settings`.
+
 ---
 
 ## 3. Human-in-the-Loop Safeguard
@@ -63,3 +81,14 @@ By default, AgentForge AI enforces a mandatory **Human Approval Gate** (`require
 - No source file is written to disk until the developer inspects the diff.
 - A visual line-by-line diff is presented showing exact additions and deletions.
 - The human operator can approve the change or reject it with instantaneous rollback.
+
+---
+
+## 4. Credential Hygiene & Key Management
+
+- **Zero-Secret Baseline:** The `.env.local` file contains placeholder keys by default (`NEBIUS_API_KEY=your_nebius_api_key_here`). Real credentials are never committed, checked into git, or logged to terminal transcripts.
+- **Key Rotation Guidance:** If a Nebius API key is ever logged or exposed, revoke and regenerate it immediately via the Nebius Token Factory console:
+  - Console URL: [Nebius Token Factory](https://dev.nebius.com/cookbook/opencode-nebius-token-factory)
+  - Navigate to **API Keys** -> Revoke the compromised key -> Issue a new token with scoped access.
+- **Mock Mode Default:** When no valid Nebius key is configured, AgentForge AI falls back seamlessly to deterministic Mock Mode, generating realistic plans, diffs, and test repairs without external API traffic.
+

@@ -128,30 +128,37 @@ export const RunStatusPanel: React.FC<RunStatusPanelProps> = ({
         </div>
       </div>
 
-      {/* Test Sandbox Security Controls */}
+      {/* Process Execution Guardrails */}
       <div className="p-3.5 rounded-lg bg-forge-900/80 border border-forge-800 space-y-2 text-xs">
         <span className="text-[11px] font-mono uppercase tracking-wider text-forge-400 flex items-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-emerald-400" />
-          Sandbox Guardrails
+          <Lock className="w-3.5 h-3.5 text-cyan-400" />
+          Process Execution Guardrails
         </span>
 
         <div className="space-y-1.5 text-[11px] font-mono text-forge-300">
           <div className="flex items-center justify-between">
+            <span className="text-forge-400">Isolation:</span>
+            <span className="text-amber-400">Host Subprocess (No Container)</span>
+          </div>
+          <div className="flex items-center justify-between">
             <span className="text-forge-400">Command Allowlist:</span>
-            <span className="text-emerald-400">Active</span>
+            <span className="text-emerald-400">Strict Allowlist</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-forge-400">Execution Timeout:</span>
             <span>15,000ms</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-forge-400">Path Traversal Guard:</span>
-            <span className="text-emerald-400">Strict</span>
+            <span className="text-forge-400">Path Containment:</span>
+            <span className="text-emerald-400">Separator & Symlink Guard</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-forge-400">Secret Redaction:</span>
-            <span className="text-emerald-400">Enforced</span>
+            <span className="text-emerald-400">Env Purged</span>
           </div>
+        </div>
+        <div className="text-[10px] text-forge-500 pt-1 border-t border-forge-800/60 leading-tight">
+          Execution restricted to verified sample projects. Untrusted repos require container sandboxing.
         </div>
       </div>
 

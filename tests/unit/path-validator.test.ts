@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateSafeWorkspacePath } from "@/lib/sandbox/path-validator";
+import { validateSafeWorkspacePath, isPathInside } from "@/lib/sandbox/path-validator";
 import path from "node:path";
 
 describe("Path Validator & Sandbox Boundary Guard", () => {
@@ -17,6 +17,20 @@ describe("Path Validator & Sandbox Boundary Guard", () => {
     const res3 = validateSafeWorkspacePath(mockRoot, "test/deep/nested/file.test.js");
     expect(res3.isValid).toBe(true);
     expect(res3.safeRelativePath).toBe("test/deep/nested/file.test.js");
+  });
+
+  it("rejects sibling directory prefix bypass (e.g. workspace-root-evil)", () => {
+    // Sibling directory that startsWith workspaceRoot string but is a different folder
+    const siblingDir = path.resolve("C:/mock-workspace-root-evil");
+    const siblingFile = path.join(siblingDir, "stolen.txt");
+
+    const res = validateSafeWorkspacePath(mockRoot, siblingFile);
+    expect(res.isValid).toBe(false);
+    expect(res.error).toContain("resolves outside workspace boundaries");
+
+    // Also verify isPathInside utility
+    expect(isPathInside(mockRoot, siblingFile)).toBe(false);
+    expect(isPathInside(mockRoot, path.join(mockRoot, "src/index.js"))).toBe(true);
   });
 
   it("rejects path traversal attempting to escape root with ../", () => {

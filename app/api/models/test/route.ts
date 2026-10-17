@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { nebiusClient } from "@/lib/nebius/client";
+import { validateLocalMutationRequest } from "@/lib/security/request-guard";
 
 export async function POST(req: Request) {
+  const guard = validateLocalMutationRequest(req);
+  if (!guard.isAllowed && guard.errorResponse) {
+    return guard.errorResponse;
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const modelId = body?.modelId || nebiusClient.getDefaultModel();

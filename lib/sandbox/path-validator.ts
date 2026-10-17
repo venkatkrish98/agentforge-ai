@@ -1,15 +1,30 @@
 import path from "node:path";
+import fs from "node:fs/promises";
 
 export interface PathValidationResult {
   isValid: boolean;
   safeRelativePath?: string;
+  resolvedFullPath?: string;
   error?: string;
+}
+
+/**
+ * Checks if targetPath is strictly inside rootDir using separator-aware comparison.
+ * Prevents sibling path bypasses (e.g. /workspace-sibling vs /workspace).
+ */
+export function isPathInside(rootDir: string, targetPath: string): boolean {
+  const resolvedRoot = path.resolve(rootDir);
+  const resolvedTarget = path.resolve(targetPath);
+
+  const rel = path.relative(resolvedRoot, resolvedTarget);
+  return Boolean(rel && !rel.startsWith("..") && !path.isAbsolute(rel));
 }
 
 /**
  * Validates that a file path is safe and strictly resides within the target workspace directory.
  * Prevents:
  * - Path traversal (e.g., ../, ..\, /etc/passwd, C:\Windows)
+ * - Sibling directory prefix matching (e.g., /workspace-evil vs /workspace)
  * - Absolute paths attempting to escape workspace
  * - Null byte injection
  * - Windows device names (CON, PRN, AUX, NUL, COM1-9, LPT1-9)
@@ -30,21 +45,12 @@ export function validateSafeWorkspacePath(
   // Normalize separators
   const cleanPath = userProvidedPath.replace(/\\/g, "/").trim();
 
-  // Check for suspicious absolute prefixes
-  if (/^(\/|[a-zA-Z]:)/.test(cleanPath)) {
-    // If it's an absolute path, it MUST resolve inside workspaceRoot
-    const resolved = path.resolve(cleanPath);
-    const rootResolved = path.resolve(workspaceRoot);
-    if (!resolved.startsWith(rootResolved)) {
-      return {
-        isValid: false,
-        error: `Absolute path escapes workspace root: ${userProvidedPath}`
-      };
-    }
-  }
-
   // Prevent path traversal tokens
   const segments = cleanPath.split("/").filter(Boolean);
+  if (segments.length === 0) {
+    return { isValid: false, error: "Path points to workspace root directly; target file expected" };
+  }
+
   for (const seg of segments) {
     if (seg === ".." || seg === ".") {
       return {
@@ -89,14 +95,17 @@ export function validateSafeWorkspacePath(
     }
   }
 
-  // Resolve inside workspace
-  const resolvedTarget = path.resolve(workspaceRoot, cleanPath);
+  // Check absolute paths
   const resolvedRoot = path.resolve(workspaceRoot);
+  const resolvedTarget = path.isAbsolute(cleanPath)
+    ? path.resolve(cleanPath)
+    : path.resolve(resolvedRoot, cleanPath);
 
-  if (!resolvedTarget.startsWith(resolvedRoot)) {
+  // Separator-aware relative containment check
+  if (!isPathInside(resolvedRoot, resolvedTarget)) {
     return {
       isValid: false,
-      error: `Path resolves outside workspace boundaries: ${userProvidedPath}`
+      error: `Path '${userProvidedPath}' resolves outside workspace boundaries: ${resolvedTarget}`
     };
   }
 
@@ -104,6 +113,68 @@ export function validateSafeWorkspacePath(
 
   return {
     isValid: true,
-    safeRelativePath: relative
+    safeRelativePath: relative,
+    resolvedFullPath: resolvedTarget
   };
+}
+
+/**
+ * Validates path and ensures no symlinks along the path point outside the workspace.
+ */
+export async function validateSafePathWithSymlinkGuard(
+  workspaceRoot: string,
+  userProvidedPath: string
+): Promise<PathValidationResult> {
+  const lexical = validateSafeWorkspacePath(workspaceRoot, userProvidedPath);
+  if (!lexical.isValid || !lexical.resolvedFullPath) {
+    return lexical;
+  }
+
+  const resolvedRoot = path.resolve(workspaceRoot);
+  const targetPath = lexical.resolvedFullPath;
+
+  try {
+    // If target exists, check its realpath
+    const realTarget = await fs.realpath(targetPath);
+    const realRoot = await fs.realpath(resolvedRoot).catch(() => resolvedRoot);
+
+    if (!isPathInside(realRoot, realTarget)) {
+      return {
+        isValid: false,
+        error: `Symlink escape detected: '${userProvidedPath}' points outside workspace to '${realTarget}'`
+      };
+    }
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      return { isValid: false, error: `Failed verifying path: ${err.message}` };
+    }
+
+    // For new files that don't exist yet, check existing parent directories
+    let current = path.dirname(targetPath);
+    while (current && current !== path.dirname(current)) {
+      try {
+        const lstat = await fs.lstat(current);
+        if (lstat.isSymbolicLink()) {
+          const realCurrent = await fs.realpath(current);
+          const realRoot = await fs.realpath(resolvedRoot).catch(() => resolvedRoot);
+          if (!isPathInside(realRoot, realCurrent) && realCurrent !== realRoot) {
+            return {
+              isValid: false,
+              error: `Symlinked parent directory '${current}' escapes workspace to '${realCurrent}'`
+            };
+          }
+        }
+      } catch (e: any) {
+        if (e.code === "ENOENT") {
+          current = path.dirname(current);
+          continue;
+        }
+      }
+
+      if (current === resolvedRoot) break;
+      current = path.dirname(current);
+    }
+  }
+
+  return lexical;
 }

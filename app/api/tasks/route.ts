@@ -3,6 +3,7 @@ import { taskStore } from "@/lib/storage/task-store";
 import { SAMPLE_PROJECTS } from "@/lib/sample-projects";
 import { Task } from "@/lib/types/task";
 import { z } from "zod";
+import { validateLocalMutationRequest } from "@/lib/security/request-guard";
 
 const CreateTaskInputSchema = z.object({
   title: z.string().min(3),
@@ -24,6 +25,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const guard = validateLocalMutationRequest(req);
+  if (!guard.isAllowed && guard.errorResponse) {
+    return guard.errorResponse;
+  }
+
   try {
     const body = await req.json();
     const parsed = CreateTaskInputSchema.safeParse(body);

@@ -3,7 +3,7 @@
 > **Autonomous AI-Assisted Coding, Safe Sandbox Test Execution, and Evidence-Backed Test Repair**  
 > *Built for the **Nebius × NVIDIA Global AI Hackathon** (Coding & Agentic Engineering Track)*
 
-[![Tests](https://img.shields.io/badge/tests-27%20passed-emerald)](https://github.com/)
+[![Tests](https://img.shields.io/badge/tests-28%20passed-emerald)](https://github.com/)
 [![Nebius Token Factory](https://img.shields.io/badge/Nebius-Token%20Factory%20Live-cyan)](https://tokenfactory.nebius.com)
 [![NVIDIA Nemotron](https://img.shields.io/badge/Model-NVIDIA%20Nemotron%203.5%20Lightning-purple)](https://www.nvidia.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -15,11 +15,11 @@
 Most AI coding assistants function merely as conversational chatbots or static code-review tools: they output speculative snippets, summarize pull requests, and leave the human engineer to manually copy code, troubleshoot build errors, and debug runtime failures.
 
 **AgentForge AI** is fundamentally different. It is an **active, closed-loop software repair agent**:
-1. **Task & Project Ingestion:** Ingests a task description and target repository context into an isolated workspace.
+1. **Task & Project Ingestion:** Ingests a task description and target repository context into an isolated workspace directory.
 2. **Autonomous Planning:** Employs **NVIDIA Nemotron** via **Nebius Token Factory** to formulate an evidence-backed, multi-phase repair plan.
 3. **Safe Patch Formulation:** Synthesizes precision source code modifications and generates readable unified diffs.
 4. **Human-in-the-Loop Approval Gate:** Pauses for human review before any code is written to disk or tests are executed.
-5. **Isolated Sandbox Test Runner:** Runs the project's test suite inside an isolated environment governed by a strict command allowlist (`node --test`, `npm test`), process timeouts, and environment variable secret-stripping.
+5. **Governed Process Test Runner:** Runs the project's test suite via host child process execution governed by a strict command allowlist (`node --test`, `npm test`, `npx vitest run`), process timeouts (15s), and environment variable secret-stripping.
 6. **Bounded Iterative Repair Loop:** Analyzes actual runtime `stdout`, `stderr`, stack traces, and failing assertions, executing surgical iterative repairs with SHA-256 loop detection to prevent infinite cycles.
 7. **Evidence-Backed Verification Synthesis:** Outputs verified passing assertion checklists and exports standardized `.patch` files.
 
@@ -40,32 +40,13 @@ AgentForge AI is built natively on **Nebius Token Factory** high-performance inf
 
 ---
 
-## 📦 Bundled Sample Demo Projects
+## 🔒 Security Architecture & Execution Guardrails
 
-Judges and evaluators can immediately run complete end-to-end coding and repair workflows using the three bundled sample projects:
-
-1. **CalcVault (Financial Math Engine):**
-   - *Issues:* Division by zero returns `NaN` instead of throwing `DivisionByZeroError`; compound interest formula has an off-by-one compounding exponent.
-   - *Test Suite:* `node --test test/calculator.test.js` (2 failing tests initially).
-   - *Result:* Agent analyzes math defects, fixes zero checks and compounding formula, verifies all 5 assertions pass.
-
-2. **AuthTokenGuard (JWT & Header Validator):**
-   - *Issues:* Null `Authorization` headers throw uncaught `TypeError`; token expiration compares UNIX epoch seconds with `Date.now()` milliseconds.
-   - *Test Suite:* `node --test test/token-guard.test.js` (2 failing tests initially).
-   - *Result:* Agent adds null-safe header parsing and normalizes epoch timestamps, verifying all 5 assertions pass.
-
-3. **AsyncEventBus (Concurrent Event Dispatcher):**
-   - *Issues:* Asynchronous listener exceptions are silently swallowed; failed dispatches are never recorded.
-   - *Test Suite:* `node --test test/event-bus.test.js` (2 failing tests initially).
-   - *Result:* Agent wraps dispatches, records failures in audit buffer, propagates exceptions, verifying all 3 assertions pass.
-
----
-
-## 🔒 Security Architecture & Sandbox Guardrails
-
-- **Zero Credential Exfiltration:** `NEBIUS_API_KEY` and all environment variables are stripped before spawning test subprocesses.
-- **Command Allowlist:** Only permitted commands (`node --test [args]`, `npm test`, `npx vitest run`) are executed. Shell chaining (`;&|`$<>`) is strictly rejected.
-- **Path Traversal Guard:** All file writes and reads are resolved within the task sandbox root. Traversal tokens (`../`) and Windows device names (`CON`, `PRN`, `NUL`) are rejected.
+- **Zero Credential Exfiltration:** `NEBIUS_API_KEY` and all environment variables are systematically stripped before spawning test subprocesses.
+- **Strict Command Allowlist:** Only permitted commands (`node --test [args]`, `npm test`, `npx vitest run`) are executed. Shell chaining (`;&|`$<>`) and metacharacters are strictly rejected.
+- **Path Containment & Symlink Guard:** All file writes and reads use separator-aware `path.relative` checking (`!rel.startsWith("..") && !path.isAbsolute(rel)`) to eliminate sibling prefix traversal, reject symlink creation, and block external symlink targets.
+- **Origin & CSRF Guard:** All state-mutating endpoints (`/api/tasks`, `/reset`, `/plan`, `/approve`, `/reject`, `/models/test`) require verified local origin headers (`localhost`, `127.0.0.1`).
+- **Process Runner vs Container Isolation:** The test runner executes local child processes with tight guardrails and timeout enforcement. As with any test runner invoking `npm test`, it is designed for trusted local repositories; multi-tenant enterprise deployments running untrusted third-party code should containerize execution (e.g. Docker/gVisor).
 - **Prompt Injection Neutralization:** Repository contents, code comments, and issue descriptions are treated strictly as untrusted string data within system prompts.
 - **Loop Detector:** Computes deterministic SHA-256 fingerprints of proposed patches to halt oscillating repair attempts.
 

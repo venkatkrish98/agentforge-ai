@@ -3,7 +3,7 @@
 > **Autonomous AI-Assisted Coding, Safe Sandbox Test Execution, and Evidence-Backed Test Repair**  
 > *Built for the **Nebius × NVIDIA Global AI Hackathon** (Coding & Agentic Engineering Track)*
 
-[![Tests](https://img.shields.io/badge/tests-28%20passed-emerald)](https://github.com/)
+[![Tests](https://img.shields.io/badge/tests-30%20passed-emerald)](https://github.com/)
 [![Nebius Token Factory](https://img.shields.io/badge/Nebius-Token%20Factory%20Live-cyan)](https://tokenfactory.nebius.com)
 [![NVIDIA Nemotron](https://img.shields.io/badge/Model-NVIDIA%20Nemotron%203.5%20Lightning-purple)](https://www.nvidia.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

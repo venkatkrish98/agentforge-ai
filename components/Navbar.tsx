@@ -46,7 +46,10 @@ export const Navbar: React.FC = () => {
     if (!confirm("Reset all tasks to the sample demo projects?")) return;
     setIsResetting(true);
     try {
-      await fetch("/api/tasks/reset", { method: "POST" });
+      await fetch("/api/tasks/reset", {
+        method: "POST",
+        headers: { "x-agentforge-request": "1" }
+      });
       window.location.reload();
     } finally {
       setIsResetting(false);

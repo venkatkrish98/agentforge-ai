@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { taskStore } from "@/lib/storage/task-store";
+import { validateLocalMutationRequest } from "@/lib/security/request-guard";
 
 export async function GET(
   req: Request,
@@ -20,6 +21,11 @@ export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const guard = validateLocalMutationRequest(req);
+  if (!guard.isAllowed) {
+    return guard.errorResponse;
+  }
+
   try {
     const success = await taskStore.deleteTask(params.id);
     if (!success) {
@@ -30,3 +36,4 @@ export async function DELETE(
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+

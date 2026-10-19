@@ -37,7 +37,10 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({ isOpen, onClose, onT
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-agentforge-request": "1"
+        },
         body: JSON.stringify({
           title,
           taskDescription,

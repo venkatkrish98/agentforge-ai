@@ -119,7 +119,7 @@ export function validateSafeWorkspacePath(
 }
 
 /**
- * Validates path and ensures no symlinks along the path point outside the workspace.
+ * Validates path and ensures no symlinks (including dangling symlinks) along the path point outside the workspace.
  */
 export async function validateSafePathWithSymlinkGuard(
   workspaceRoot: string,
@@ -131,50 +131,94 @@ export async function validateSafePathWithSymlinkGuard(
   }
 
   const resolvedRoot = path.resolve(workspaceRoot);
+  const realRoot = await fs.realpath(resolvedRoot).catch(() => resolvedRoot);
   const targetPath = lexical.resolvedFullPath;
 
+  // 1. Check if targetPath itself exists (regular file, directory, or symlink)
   try {
-    // If target exists, check its realpath
-    const realTarget = await fs.realpath(targetPath);
-    const realRoot = await fs.realpath(resolvedRoot).catch(() => resolvedRoot);
+    const lstat = await fs.lstat(targetPath);
+    if (lstat.isSymbolicLink()) {
+      // It is a symlink: read link target even if target destination does not exist (dangling symlink)
+      const linkTarget = await fs.readlink(targetPath);
+      const resolvedLinkTarget = path.isAbsolute(linkTarget)
+        ? path.resolve(linkTarget)
+        : path.resolve(path.dirname(targetPath), linkTarget);
 
-    if (!isPathInside(realRoot, realTarget)) {
-      return {
-        isValid: false,
-        error: `Symlink escape detected: '${userProvidedPath}' points outside workspace to '${realTarget}'`
-      };
+      let canonicalLinkTarget = resolvedLinkTarget;
+      try {
+        canonicalLinkTarget = await fs.realpath(resolvedLinkTarget);
+      } catch {
+        // Target file does not exist yet on disk (dangling symlink)
+      }
+
+      if (!isPathInside(realRoot, canonicalLinkTarget)) {
+        return {
+          isValid: false,
+          error: `Symlink escape detected: '${userProvidedPath}' is a symlink pointing outside workspace to '${canonicalLinkTarget}'`
+        };
+      }
+    } else {
+      // Regular file or directory: verify realpath
+      const realTarget = await fs.realpath(targetPath);
+      if (!isPathInside(realRoot, realTarget)) {
+        return {
+          isValid: false,
+          error: `Path escape detected: '${userProvidedPath}' resolves outside workspace to '${realTarget}'`
+        };
+      }
     }
   } catch (err: any) {
     if (err.code !== "ENOENT") {
       return { isValid: false, error: `Failed verifying path: ${err.message}` };
     }
+    // targetPath does not exist on disk at all. Proceed to check parent directories.
+  }
 
-    // For new files that don't exist yet, check existing parent directories
-    let current = path.dirname(targetPath);
-    while (current && current !== path.dirname(current)) {
-      try {
-        const lstat = await fs.lstat(current);
-        if (lstat.isSymbolicLink()) {
-          const realCurrent = await fs.realpath(current);
-          const realRoot = await fs.realpath(resolvedRoot).catch(() => resolvedRoot);
-          if (!isPathInside(realRoot, realCurrent) && realCurrent !== realRoot) {
-            return {
-              isValid: false,
-              error: `Symlinked parent directory '${current}' escapes workspace to '${realCurrent}'`
-            };
-          }
+  // 2. For files being written into parent directories, verify existing parent directories
+  let current = path.dirname(targetPath);
+  while (current && current !== path.dirname(current)) {
+    try {
+      const lstat = await fs.lstat(current);
+      if (lstat.isSymbolicLink()) {
+        const linkTarget = await fs.readlink(current);
+        const resolvedLinkTarget = path.isAbsolute(linkTarget)
+          ? path.resolve(linkTarget)
+          : path.resolve(path.dirname(current), linkTarget);
+
+        let canonicalParent = resolvedLinkTarget;
+        try {
+          canonicalParent = await fs.realpath(resolvedLinkTarget);
+        } catch {
+          // Dangling parent symlink
         }
-      } catch (e: any) {
-        if (e.code === "ENOENT") {
-          current = path.dirname(current);
-          continue;
+
+        if (!isPathInside(realRoot, canonicalParent) && canonicalParent !== realRoot) {
+          return {
+            isValid: false,
+            error: `Symlinked parent directory '${current}' escapes workspace to '${canonicalParent}'`
+          };
+        }
+      } else {
+        const realCurrent = await fs.realpath(current);
+        if (!isPathInside(realRoot, realCurrent) && realCurrent !== realRoot) {
+          return {
+            isValid: false,
+            error: `Parent directory '${current}' escapes workspace to '${realCurrent}'`
+          };
         }
       }
-
-      if (current === resolvedRoot) break;
-      current = path.dirname(current);
+    } catch (e: any) {
+      if (e.code === "ENOENT") {
+        current = path.dirname(current);
+        continue;
+      }
+      return { isValid: false, error: `Failed verifying parent path '${current}': ${e.message}` };
     }
+
+    if (current === resolvedRoot || current === realRoot) break;
+    current = path.dirname(current);
   }
 
   return lexical;
 }
+

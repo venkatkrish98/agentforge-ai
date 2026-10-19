@@ -37,12 +37,12 @@ AgentForge AI executes code generation and test execution tasks on behalf of sof
   - Shell metacharacters (`;&|`$<>` and newlines) are rejected immediately.
   - Direct execution of binary processes without shell invocation on Windows for Node binaries.
 
-### 2.4 Threat Vector 4: Path Traversal, Sibling Directory Escapes & Symlinks
-- **Attack:** Proposed patches or directory walks target `../../../../etc/shadow`, sibling directories sharing a common prefix (e.g. `/workspace-evil` vs `/workspace`), Windows device names, or symlinks pointing outside the workspace.
+### 2.4 Threat Vector 4: Path Traversal, Sibling Directory Escapes & Dangling Symlinks
+- **Attack:** Proposed patches or directory walks target `../../../../etc/shadow`, sibling directories sharing a common prefix (e.g. `/workspace-evil` vs `/workspace`), Windows device names, or dangling symlinks pointing to non-existent external paths (e.g. `broken-link` -> `/outside/ghost.txt`).
 - **Mitigation:**
   - `isPathInside()` uses separator-aware `path.relative` checking (`!rel.startsWith("..") && !path.isAbsolute(rel)`) rather than naive substring matching.
-  - `validateSafePathWithSymlinkGuard()` rejects symlink creation and verifies real canonical paths via `fs.realpathSync.native` to block symlink traversal outside the workspace.
-  - Workspace directory tree walks explicitly set `withFileTypes: true` and ignore symlinks, skipping any external realpaths.
+  - `validateSafePathWithSymlinkGuard()` inspects `fs.lstat` on the target path first. Even when a target file does not yet exist on disk, if `lstat.isSymbolicLink()` is true, `fs.readlink` resolves the symlink destination and verifies that it is strictly contained within the canonical workspace root.
+  - Parent directories are recursively inspected up to the workspace root for escaping symlinks.
   - Path traversal tokens (`..` and `.`) in segments are rejected.
   - Null bytes (`\0`) are checked and rejected.
   - Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) are blocked.
@@ -67,11 +67,13 @@ AgentForge AI executes code generation and test execution tasks on behalf of sof
 - **Roadmap for Untrusted Multi-Tenant Sandboxing:** For enterprise deployments running arbitrary untrusted third-party code, the execution runner should be swapped to an isolated container/microVM (such as Docker with `--read-only`, no network access, or gVisor sandbox).
 
 ### 2.7 Threat Vector 7: Cross-Origin Request Forgery (CSRF) & State Mutation
-- **Attack:** Malicious websites open in the developer's browser triggering background POST requests to `http://localhost:3000/api/tasks/reset` or `/api/models/test`.
+- **Attack:** Malicious websites open in the developer's browser triggering background POST/DELETE requests to `http://localhost:3000/api/tasks/reset` or `/api/tasks/[id]`.
 - **Mitigation:**
   - `validateLocalMutationRequest()` validates incoming `Origin` and `Referer` headers against `localhost`, `127.0.0.1`, and `[::1]`.
-  - Mutation endpoints (`/api/tasks`, `/reset`, `/plan`, `/approve`, `/reject`, `/models/test`) reject non-matching origins with `403 Forbidden`.
-  - Navbar does not trigger automatic live inference requests on page load; model tests are strictly user-initiated from `/settings`.
+  - Requests with missing `Origin`, `Referer`, and `Sec-Fetch-Site` are blocked unless accompanied by the custom header `x-agentforge-request: 1` (which browsers cannot send cross-origin without CORS preflight approval).
+  - All mutating endpoints (`POST /api/tasks`, `POST /reset`, `POST /plan`, `POST /approve`, `POST /reject`, `POST /models/test`, `DELETE /api/tasks/[id]`) are strictly protected.
+  - **Scope Limitation:** This guard is designed as local origin/CSRF protection for local developer tooling; in a multi-user or shared network environment, full session/bearer authentication is required.
+
 
 ---
 

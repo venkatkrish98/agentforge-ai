@@ -37,7 +37,10 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/models/test", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-agentforge-request": "1"
+        },
         body: JSON.stringify({ modelId: selectedModelForTest })
       });
       const data = await res.json();

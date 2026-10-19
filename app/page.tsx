@@ -96,7 +96,10 @@ export default function WorkspacePage() {
     setIsProcessing(true);
     setActiveTab("plan");
     try {
-      const res = await fetch(`/api/tasks/${activeTask.id}/plan`, { method: "POST" });
+      const res = await fetch(`/api/tasks/${activeTask.id}/plan`, {
+        method: "POST",
+        headers: { "x-agentforge-request": "1" }
+      });
       const data = await res.json();
       if (data.task) {
         setTasks((prev) => prev.map((t) => (t.id === data.task.id ? data.task : t)));
@@ -117,7 +120,10 @@ export default function WorkspacePage() {
     setIsProcessing(true);
     setActiveTab("tests");
     try {
-      const res = await fetch(`/api/tasks/${activeTask.id}/approve`, { method: "POST" });
+      const res = await fetch(`/api/tasks/${activeTask.id}/approve`, {
+        method: "POST",
+        headers: { "x-agentforge-request": "1" }
+      });
       const data = await res.json();
       if (data.task) {
         setTasks((prev) => prev.map((t) => (t.id === data.task.id ? data.task : t)));
@@ -137,7 +143,10 @@ export default function WorkspacePage() {
     if (!activeTask) return;
     setIsProcessing(true);
     try {
-      const res = await fetch(`/api/tasks/${activeTask.id}/reject`, { method: "POST" });
+      const res = await fetch(`/api/tasks/${activeTask.id}/reject`, {
+        method: "POST",
+        headers: { "x-agentforge-request": "1" }
+      });
       const data = await res.json();
       if (data.task) {
         setTasks((prev) => prev.map((t) => (t.id === data.task.id ? data.task : t)));
@@ -152,7 +161,10 @@ export default function WorkspacePage() {
   // Handle delete task
   const handleDeleteTask = async (taskId: string) => {
     try {
-      await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+      await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+        headers: { "x-agentforge-request": "1" }
+      });
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       if (activeTaskId === taskId) {
         const remaining = tasks.filter((t) => t.id !== taskId);

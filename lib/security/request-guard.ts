@@ -6,16 +6,24 @@ export interface RequestGuardResult {
 }
 
 /**
- * Validates that state-mutating requests (POST, DELETE, PUT) originate from a trusted local origin.
- * Defends against Cross-Site Request Forgery (CSRF) and unauthorized external invocations.
+ * Validates that state-mutating requests (POST, DELETE, PUT, PATCH) originate strictly from
+ * a verified local origin or trusted client session.
+ * 
+ * Mitigations:
+ * 1. Sec-Fetch-Site rejection (blocks cross-site browser fetches).
+ * 2. Origin header validation (must match localhost / 127.0.0.1 / ::1 / host).
+ * 3. Referer header validation (must match localhost / 127.0.0.1 / host).
+ * 4. Header-presence requirement: rejects requests that omit Origin, Referer, and the
+ *    'x-agentforge-request' custom header, defending against blind form CSRF or stripped-referrer attacks.
  */
 export function validateLocalMutationRequest(req: Request): RequestGuardResult {
   const host = req.headers.get("host") || "";
   const origin = req.headers.get("origin");
   const referer = req.headers.get("referer");
   const secFetchSite = req.headers.get("sec-fetch-site");
+  const customHeader = req.headers.get("x-agentforge-request");
 
-  // If sec-fetch-site is present, reject cross-site requests
+  // 1. Block explicit cross-site requests signaled by browser metadata
   if (secFetchSite && secFetchSite === "cross-site") {
     return {
       isAllowed: false,
@@ -26,19 +34,18 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
     };
   }
 
-  // If origin is provided, verify it matches the host or localhost
+  // Helper to test if a hostname is local
+  const isLocalHost = (hostname: string) =>
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    hostname === host.split(":")[0];
+
+  // 2. Validate Origin header if present
   if (origin) {
     try {
       const originUrl = new URL(origin);
-      const isLocalhost =
-        originUrl.hostname === "localhost" ||
-        originUrl.hostname === "127.0.0.1" ||
-        originUrl.hostname === "::1";
-
-      const hostWithoutPort = host.split(":")[0];
-      const originMatchesHost = originUrl.hostname === hostWithoutPort;
-
-      if (!isLocalhost && !originMatchesHost) {
+      if (!isLocalHost(originUrl.hostname)) {
         return {
           isAllowed: false,
           errorResponse: NextResponse.json(
@@ -58,19 +65,11 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
     }
   }
 
-  // If referer is provided without origin, verify it matches host
-  if (!origin && referer) {
+  // 3. Validate Referer header if present
+  if (referer) {
     try {
       const refererUrl = new URL(referer);
-      const isLocalhost =
-        refererUrl.hostname === "localhost" ||
-        refererUrl.hostname === "127.0.0.1" ||
-        refererUrl.hostname === "::1";
-
-      const hostWithoutPort = host.split(":")[0];
-      const refererMatchesHost = refererUrl.hostname === hostWithoutPort;
-
-      if (!isLocalhost && !refererMatchesHost) {
+      if (!isLocalHost(refererUrl.hostname)) {
         return {
           isAllowed: false,
           errorResponse: NextResponse.json(
@@ -80,9 +79,33 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
         };
       }
     } catch {
-      // Ignore malformed referer
+      return {
+        isAllowed: false,
+        errorResponse: NextResponse.json(
+          { error: "Forbidden: Malformed referer header." },
+          { status: 400 }
+        )
+      };
     }
+  }
+
+  // 4. Strict defense against blind CSRF (e.g. <form action="..." method="POST"> with rel="noreferrer")
+  // If Origin, Referer, and Sec-Fetch-Site are completely absent, require the custom header 'x-agentforge-request'.
+  // Browsers cannot set custom headers on cross-origin form submissions or unprompted navigation.
+  const hasLocalOrigin = origin && isLocalHost(new URL(origin).hostname);
+  const hasLocalReferer = referer && isLocalHost(new URL(referer).hostname);
+  const hasTrustedHeader = customHeader === "1" || customHeader === "true";
+
+  if (!hasLocalOrigin && !hasLocalReferer && !hasTrustedHeader) {
+    return {
+      isAllowed: false,
+      errorResponse: NextResponse.json(
+        { error: "Forbidden: Request missing local origin or 'x-agentforge-request' verification header." },
+        { status: 403 }
+      )
+    };
   }
 
   return { isAllowed: true };
 }
+

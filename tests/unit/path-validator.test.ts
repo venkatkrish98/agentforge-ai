@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { validateSafeWorkspacePath, isPathInside } from "@/lib/sandbox/path-validator";
+import { validateSafeWorkspacePath, validateSafePathWithSymlinkGuard, isPathInside } from "@/lib/sandbox/path-validator";
 import path from "node:path";
+import fs from "node:fs";
+import os from "node:os";
 
 describe("Path Validator & Sandbox Boundary Guard", () => {
   const mockRoot = path.resolve("C:/mock-workspace-root");
@@ -66,4 +68,33 @@ describe("Path Validator & Sandbox Boundary Guard", () => {
     expect(res.isValid).toBe(false);
     expect(res.error).toContain("Empty or invalid path");
   });
+
+  it("detects and rejects dangling symlinks pointing outside workspace boundaries", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "agentforge-symtest-"));
+    try {
+      const outsideGhostFile = path.join(tempDir, "..", "ghost-secret-file.txt");
+      const danglingSymlink = path.join(tempDir, "dangling-escape.js");
+
+      // Create a dangling symlink pointing to an uncreated file outside the workspace
+      fs.symlinkSync(outsideGhostFile, danglingSymlink, "file");
+
+      const res = await validateSafePathWithSymlinkGuard(tempDir, "dangling-escape.js");
+      expect(res.isValid).toBe(false);
+      expect(res.error).toContain("Symlink escape detected");
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("allows safe newly proposed files in legitimate subdirectories via symlink guard", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "agentforge-validtest-"));
+    try {
+      const res = await validateSafePathWithSymlinkGuard(tempDir, "src/new-feature.js");
+      expect(res.isValid).toBe(true);
+      expect(res.safeRelativePath).toBe("src/new-feature.js");
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
+

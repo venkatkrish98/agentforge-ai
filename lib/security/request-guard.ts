@@ -6,14 +6,26 @@ export interface RequestGuardResult {
 }
 
 /**
+ * Strict set of permitted loopback hostnames.
+ * Arbitrary Host headers are explicitly forbidden to prevent DNS rebinding attacks.
+ */
+const ALLOWED_LOOPBACK_HOSTS = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "[::1]"
+]);
+
+/**
  * Validates that state-mutating requests (POST, DELETE, PUT, PATCH) originate strictly from
- * a verified local origin or trusted client session.
+ * a verified loopback origin or trusted client session.
  * 
  * Mitigations:
- * 1. Sec-Fetch-Site rejection (blocks cross-site browser fetches).
- * 2. Origin header validation (must match localhost / 127.0.0.1 / ::1 / host).
- * 3. Referer header validation (must match localhost / 127.0.0.1 / host).
- * 4. Header-presence requirement: rejects requests that omit Origin, Referer, and the
+ * 1. DNS Rebinding Protection: Host header must strictly be a loopback host (localhost, 127.0.0.1, ::1).
+ * 2. Sec-Fetch-Site rejection (blocks cross-site browser fetches).
+ * 3. Origin header validation (must strictly match loopback hosts, never arbitrary Host headers).
+ * 4. Referer header validation (must strictly match loopback hosts).
+ * 5. Header-presence requirement: rejects requests that omit Origin, Referer, and the
  *    'x-agentforge-request' custom header, defending against blind form CSRF or stripped-referrer attacks.
  */
 export function validateLocalMutationRequest(req: Request): RequestGuardResult {
@@ -23,7 +35,19 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
   const secFetchSite = req.headers.get("sec-fetch-site");
   const customHeader = req.headers.get("x-agentforge-request");
 
-  // 1. Block explicit cross-site requests signaled by browser metadata
+  // 1. Host header validation against DNS rebinding
+  const hostName = host.split(":")[0].toLowerCase();
+  if (hostName && !ALLOWED_LOOPBACK_HOSTS.has(hostName)) {
+    return {
+      isAllowed: false,
+      errorResponse: NextResponse.json(
+        { error: `Forbidden: Untrusted Host '${hostName}'. Only loopback hosts (localhost, 127.0.0.1) are permitted.` },
+        { status: 403 }
+      )
+    };
+  }
+
+  // 2. Block explicit cross-site requests signaled by browser metadata
   if (secFetchSite && secFetchSite === "cross-site") {
     return {
       isAllowed: false,
@@ -34,14 +58,10 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
     };
   }
 
-  // Helper to test if a hostname is local
-  const isLocalHost = (hostname: string) =>
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "::1" ||
-    hostname === host.split(":")[0];
+  // Helper to test if a hostname is strictly a known loopback host
+  const isLocalHost = (hostname: string) => ALLOWED_LOOPBACK_HOSTS.has(hostname.toLowerCase());
 
-  // 2. Validate Origin header if present
+  // 3. Validate Origin header if present
   if (origin) {
     try {
       const originUrl = new URL(origin);
@@ -49,7 +69,7 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
         return {
           isAllowed: false,
           errorResponse: NextResponse.json(
-            { error: `Forbidden: Untrusted origin '${origin}'.` },
+            { error: `Forbidden: Untrusted origin '${origin}'. Only loopback origins are permitted.` },
             { status: 403 }
           )
         };
@@ -65,7 +85,7 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
     }
   }
 
-  // 3. Validate Referer header if present
+  // 4. Validate Referer header if present
   if (referer) {
     try {
       const refererUrl = new URL(referer);
@@ -73,7 +93,7 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
         return {
           isAllowed: false,
           errorResponse: NextResponse.json(
-            { error: `Forbidden: Untrusted referer '${referer}'.` },
+            { error: `Forbidden: Untrusted referer '${referer}'. Only loopback referers are permitted.` },
             { status: 403 }
           )
         };
@@ -89,11 +109,25 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
     }
   }
 
-  // 4. Strict defense against blind CSRF (e.g. <form action="..." method="POST"> with rel="noreferrer")
-  // If Origin, Referer, and Sec-Fetch-Site are completely absent, require the custom header 'x-agentforge-request'.
-  // Browsers cannot set custom headers on cross-origin form submissions or unprompted navigation.
-  const hasLocalOrigin = origin && isLocalHost(new URL(origin).hostname);
-  const hasLocalReferer = referer && isLocalHost(new URL(referer).hostname);
+  // 5. Strict defense against blind CSRF (e.g. <form action="..." method="POST"> with rel="noreferrer")
+  let hasLocalOrigin = false;
+  if (origin) {
+    try {
+      hasLocalOrigin = isLocalHost(new URL(origin).hostname);
+    } catch {
+      hasLocalOrigin = false;
+    }
+  }
+
+  let hasLocalReferer = false;
+  if (referer) {
+    try {
+      hasLocalReferer = isLocalHost(new URL(referer).hostname);
+    } catch {
+      hasLocalReferer = false;
+    }
+  }
+
   const hasTrustedHeader = customHeader === "1" || customHeader === "true";
 
   if (!hasLocalOrigin && !hasLocalReferer && !hasTrustedHeader) {

@@ -66,12 +66,13 @@ AgentForge AI executes code generation and test execution tasks on behalf of sof
 - **Limitation & Disclosure:** The runner currently runs on the host system without OS-level namespace, cgroup, or container isolation (e.g., Docker, Firecracker, or gVisor). Because `npm test` can trigger arbitrary scripts defined in a repository's `package.json`, **AgentForge AI is framed as a developer assistant for trusted/semi-trusted local projects, not a multi-tenant untrusted execution sandbox**.
 - **Roadmap for Untrusted Multi-Tenant Sandboxing:** For enterprise deployments running arbitrary untrusted third-party code, the execution runner should be swapped to an isolated container/microVM (such as Docker with `--read-only`, no network access, or gVisor sandbox).
 
-### 2.7 Threat Vector 7: Cross-Origin Request Forgery (CSRF) & State Mutation
-- **Attack:** Malicious websites open in the developer's browser triggering background POST/DELETE requests to `http://localhost:3000/api/tasks/reset` or `/api/tasks/[id]`.
+### 2.7 Threat Vector 7: Cross-Origin Request Forgery (CSRF), DNS Rebinding & State Mutation
+- **Attack:** Malicious websites open in the developer's browser triggering background POST/DELETE requests to `http://localhost:3000/api/tasks/reset` or `/api/tasks/[id]`, or utilizing DNS rebinding domains resolving to `127.0.0.1` to spoof Host headers.
 - **Mitigation:**
-  - `validateLocalMutationRequest()` validates incoming `Origin` and `Referer` headers against `localhost`, `127.0.0.1`, and `[::1]`.
+  - `validateLocalMutationRequest()` strictly validates `Host`, `Origin`, and `Referer` against an immutable whitelist of loopback hosts (`localhost`, `127.0.0.1`, `::1`, `[::1]`). Arbitrary Host header values are strictly rejected to eliminate DNS rebinding attacks.
   - Requests with missing `Origin`, `Referer`, and `Sec-Fetch-Site` are blocked unless accompanied by the custom header `x-agentforge-request: 1` (which browsers cannot send cross-origin without CORS preflight approval).
   - All mutating endpoints (`POST /api/tasks`, `POST /reset`, `POST /plan`, `POST /approve`, `POST /reject`, `POST /models/test`, `DELETE /api/tasks/[id]`) are strictly protected.
+  - **Loopback-Only Server Binding:** `dev` and `start` scripts bind explicitly to `127.0.0.1` (`-H 127.0.0.1`), ensuring the local server is not accessible across LAN or public networks.
   - **Scope Limitation:** This guard is designed as local origin/CSRF protection for local developer tooling; in a multi-user or shared network environment, full session/bearer authentication is required.
 
 

@@ -138,23 +138,23 @@ export async function validateSafePathWithSymlinkGuard(
   try {
     const lstat = await fs.lstat(targetPath);
     if (lstat.isSymbolicLink()) {
-      // It is a symlink: read link target even if target destination does not exist (dangling symlink)
-      const linkTarget = await fs.readlink(targetPath);
-      const resolvedLinkTarget = path.isAbsolute(linkTarget)
-        ? path.resolve(linkTarget)
-        : path.resolve(path.dirname(targetPath), linkTarget);
-
-      let canonicalLinkTarget = resolvedLinkTarget;
+      // It is a symlink: attempt to canonicalize target path.
+      // If the target cannot be resolved (dangling symlink), reject it immediately.
+      // Allowing an unresolvable symlink risks intermediate directory symlink escapes.
+      let realTarget: string;
       try {
-        canonicalLinkTarget = await fs.realpath(resolvedLinkTarget);
+        realTarget = await fs.realpath(targetPath);
       } catch {
-        // Target file does not exist yet on disk (dangling symlink)
-      }
-
-      if (!isPathInside(realRoot, canonicalLinkTarget)) {
         return {
           isValid: false,
-          error: `Symlink escape detected: '${userProvidedPath}' is a symlink pointing outside workspace to '${canonicalLinkTarget}'`
+          error: `Symlink escape detected: '${userProvidedPath}' is a dangling or unresolvable symlink pointing to a non-existent target.`
+        };
+      }
+
+      if (!isPathInside(realRoot, realTarget)) {
+        return {
+          isValid: false,
+          error: `Symlink escape detected: '${userProvidedPath}' is a symlink pointing outside workspace to '${realTarget}'`
         };
       }
     } else {
@@ -174,28 +174,26 @@ export async function validateSafePathWithSymlinkGuard(
     // targetPath does not exist on disk at all. Proceed to check parent directories.
   }
 
-  // 2. For files being written into parent directories, verify existing parent directories
+  // 2. For files being written into parent directories, verify all existing parent directories
   let current = path.dirname(targetPath);
   while (current && current !== path.dirname(current)) {
     try {
-      const lstat = await fs.lstat(current);
-      if (lstat.isSymbolicLink()) {
-        const linkTarget = await fs.readlink(current);
-        const resolvedLinkTarget = path.isAbsolute(linkTarget)
-          ? path.resolve(linkTarget)
-          : path.resolve(path.dirname(current), linkTarget);
-
-        let canonicalParent = resolvedLinkTarget;
+      const parentLstat = await fs.lstat(current);
+      if (parentLstat.isSymbolicLink()) {
+        let realCurrent: string;
         try {
-          canonicalParent = await fs.realpath(resolvedLinkTarget);
+          realCurrent = await fs.realpath(current);
         } catch {
-          // Dangling parent symlink
-        }
-
-        if (!isPathInside(realRoot, canonicalParent) && canonicalParent !== realRoot) {
           return {
             isValid: false,
-            error: `Symlinked parent directory '${current}' escapes workspace to '${canonicalParent}'`
+            error: `Symlink escape detected: parent directory '${current}' is an unresolvable symlink.`
+          };
+        }
+
+        if (!isPathInside(realRoot, realCurrent) && realCurrent !== realRoot) {
+          return {
+            isValid: false,
+            error: `Symlinked parent directory '${current}' escapes workspace to '${realCurrent}'`
           };
         }
       } else {

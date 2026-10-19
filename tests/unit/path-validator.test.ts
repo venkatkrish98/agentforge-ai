@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { validateSafeWorkspacePath, validateSafePathWithSymlinkGuard, isPathInside } from "@/lib/sandbox/path-validator";
 import path from "node:path";
 import fs from "node:fs";
@@ -75,12 +75,42 @@ describe("Path Validator & Sandbox Boundary Guard", () => {
       const outsideGhostFile = path.join(tempDir, "..", "ghost-secret-file.txt");
       const danglingSymlink = path.join(tempDir, "dangling-escape.js");
 
-      // Create a dangling symlink pointing to an uncreated file outside the workspace
-      fs.symlinkSync(outsideGhostFile, danglingSymlink, "file");
+      let createdSymlink = false;
+      try {
+        fs.symlinkSync(outsideGhostFile, danglingSymlink, "file");
+        createdSymlink = true;
+      } catch (err: any) {
+        if (err.code !== "EPERM" && err.code !== "EACCES") throw err;
+      }
 
-      const res = await validateSafePathWithSymlinkGuard(tempDir, "dangling-escape.js");
-      expect(res.isValid).toBe(false);
-      expect(res.error).toContain("Symlink escape detected");
+      if (createdSymlink) {
+        const res = await validateSafePathWithSymlinkGuard(tempDir, "dangling-escape.js");
+        expect(res.isValid).toBe(false);
+        expect(res.error).toContain("Symlink escape detected");
+      } else {
+        // Fallback for sandboxed Windows environments lacking SeCreateSymbolicLinkPrivilege
+        const lstatSpy = vi.spyOn(fs.promises, "lstat").mockImplementation(async (p: any) => {
+          if (p.toString().includes("dangling-escape.js")) {
+            return { isSymbolicLink: () => true } as any;
+          }
+          return fs.promises.lstat(p);
+        });
+        const readlinkSpy = vi.spyOn(fs.promises, "readlink").mockImplementation(async (p: any) => {
+          if (p.toString().includes("dangling-escape.js")) {
+            return outsideGhostFile;
+          }
+          return fs.promises.readlink(p);
+        });
+
+        try {
+          const res = await validateSafePathWithSymlinkGuard(tempDir, "dangling-escape.js");
+          expect(res.isValid).toBe(false);
+          expect(res.error).toContain("Symlink escape detected");
+        } finally {
+          lstatSpy.mockRestore();
+          readlinkSpy.mockRestore();
+        }
+      }
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }

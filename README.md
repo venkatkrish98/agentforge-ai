@@ -3,7 +3,7 @@
 > **Autonomous AI-Assisted Coding, Safe Sandbox Test Execution, and Evidence-Backed Test Repair**  
 > *Built for the **Nebius × NVIDIA Global AI Hackathon** (Coding & Agentic Engineering Track)*
 
-[![Tests](https://img.shields.io/badge/tests-30%20passed-emerald)](https://github.com/)
+[![Tests](https://img.shields.io/badge/tests-35%20passed-emerald)](https://github.com/venkatkrish98/agentforge-ai)
 [![Nebius Token Factory](https://img.shields.io/badge/Nebius-Token%20Factory%20Live-cyan)](https://tokenfactory.nebius.com)
 [![NVIDIA Nemotron](https://img.shields.io/badge/Model-NVIDIA%20Nemotron%203.5%20Lightning-purple)](https://www.nvidia.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -105,13 +105,14 @@ npm run test:coverage
 
 ### Verified Test Coverage Summary:
 - **Path Validator:** 9 tests (relative paths, sibling prefix containment, path traversal `../`, null bytes, Windows device names, and dangling symlink escape detection).
+- **Request Guard & DNS Rebinding:** 5 tests (IPv4 loopback, IPv6 bracketed `[::1]:3000` literal parsing, hostile Host header 403 rejection, and blind CSRF prevention).
 - **Test Runner & Allowlist:** 5 tests (approved commands, dangerous chaining rejection, TAP output parsing, subprocess execution).
 - **Loop Detector:** 4 tests (SHA-256 fingerprinting, attempt limits, cyclic proposal detection).
 - **Nebius Parser:** 4 tests (`<think>` tag stripping, markdown JSON extraction, malformed recovery).
 - **Patch Applier:** 2 tests (unified diff additions/deletions, snapshot rollback).
 - **Provider & Prompt Injection:** 4 tests (model catalog, missing key mock mode, secret masking, injection isolation).
 - **Task Orchestrator Lifecycle:** 2 integration tests (complete Plan -> Propose -> Approve -> Sandbox Test -> Repair -> Export journey).
-- **Total:** **30 tests passed (100% pass rate across 7 suites)**.
+- **Total:** **35 tests passed (100% pass rate across 8 suites)**.
 
 ---
 

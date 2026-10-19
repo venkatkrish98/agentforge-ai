@@ -60,7 +60,7 @@ AgentForge AI is built natively on **Nebius Token Factory** high-performance inf
 
 ### 2. Clone & Install Dependencies
 ```bash
-git clone https://github.com/your-username/agentforge-ai.git
+git clone https://github.com/venkatkrish98/agentforge-ai.git
 cd agentforge-ai
 npm install
 ```
@@ -104,14 +104,14 @@ npm run test:coverage
 ```
 
 ### Verified Test Coverage Summary:
-- **Path Validator:** 6 tests (relative paths, path traversal `../`, null bytes, Windows device names).
+- **Path Validator:** 9 tests (relative paths, sibling prefix containment, path traversal `../`, null bytes, Windows device names, and dangling symlink escape detection).
 - **Test Runner & Allowlist:** 5 tests (approved commands, dangerous chaining rejection, TAP output parsing, subprocess execution).
 - **Loop Detector:** 4 tests (SHA-256 fingerprinting, attempt limits, cyclic proposal detection).
 - **Nebius Parser:** 4 tests (`<think>` tag stripping, markdown JSON extraction, malformed recovery).
 - **Patch Applier:** 2 tests (unified diff additions/deletions, snapshot rollback).
 - **Provider & Prompt Injection:** 4 tests (model catalog, missing key mock mode, secret masking, injection isolation).
 - **Task Orchestrator Lifecycle:** 2 integration tests (complete Plan -> Propose -> Approve -> Sandbox Test -> Repair -> Export journey).
-- **Total:** **27 tests passed (100% pass rate)**.
+- **Total:** **30 tests passed (100% pass rate across 7 suites)**.
 
 ---
 

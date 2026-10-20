@@ -110,7 +110,7 @@ async function recordScene(sceneNum, targetDurationSec, actionFn) {
   await page.addInitScript(cursorInitScript);
 
   const startTime = Date.now();
-  await actionFn(page);
+  await actionFn(page, startTime);
   const elapsed = (Date.now() - startTime) / 1000;
   
   if (elapsed < targetDurationSec) {
@@ -473,55 +473,61 @@ async function main() {
   await apiPost('/api/tasks/task_calc-vault/plan');
   await apiPost('/api/tasks/task_calc-vault/approve');
 
-  await recordScene(7, 15.3, async (page) => {
+  await recordScene(7, 15.3, async (page, startTime) => {
     let curX = 960, curY = 540;
-    await page.goto('http://127.0.0.1:3000/?task=task_calc-vault&tab=overview');
-    await page.waitForTimeout(800);
+    await page.goto('http://127.0.0.1:3000/?task=task_calc-vault&tab=overview', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(400);
 
-    // Click Final Report tab button
+    // 0.5s: Move to and click Final Report tab button
     const reportTabBtn = await page.waitForSelector('button:has-text("Final Report")', { timeout: 6000 });
     const repBox = await reportTabBtn.boundingBox();
     if (repBox) {
-      await smoothMove(page, curX, curY, repBox.x + repBox.width / 2, repBox.y + repBox.height / 2, 600);
+      await smoothMove(page, curX, curY, repBox.x + repBox.width / 2, repBox.y + repBox.height / 2, 500);
       curX = repBox.x + repBox.width / 2; curY = repBox.y + repBox.height / 2;
       await clickAt(page, curX, curY);
     }
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(800);
 
-    // Hover over Evidence-Backed Verification Synthesis card
-    await smoothMove(page, curX, curY, 500, 310, 700);
-    curX = 500; curY = 310;
-    await page.waitForTimeout(2000);
+    // 1.8s - 4.5s: "AI synthesizes evidence: verified test checklists"
+    // Move cursor gently across the Evidence Synthesis panel and verified checks
+    await smoothMove(page, curX, curY, 450, 260, 700);
+    curX = 450; curY = 260;
+    await page.waitForTimeout(1400);
 
-    // Scroll down to view verified behaviors
-    for (let scroll = 0; scroll <= 160; scroll += 20) {
-      await page.mouse.wheel(0, 20);
-      await page.waitForTimeout(70);
-    }
-    await page.waitForTimeout(2000);
+    // 4.5s - 7.0s: "duration metrics, and loop detection fingerprints"
+    // Find the Export .patch button (located at top right of the synthesis report)
+    const exportBtn = await page.waitForSelector('button:has-text("Export .patch")', { timeout: 6000 });
+    const expBox = await exportBtn.boundingBox();
+    if (expBox) {
+      const btnCenterX = expBox.x + expBox.width / 2;
+      const btnCenterY = expBox.y + expBox.height / 2;
 
-    // Scroll up to Export .patch button
-    for (let scroll = 0; scroll <= 160; scroll += 30) {
-      await page.mouse.wheel(0, -30);
-      await page.waitForTimeout(50);
-    }
-    await page.waitForTimeout(1000);
+      // Move smoothly directly to center of Export .patch button
+      await smoothMove(page, curX, curY, btnCenterX, btnCenterY, 800);
+      curX = btnCenterX; curY = btnCenterY;
 
-    // Move to cyan "Export .patch" button, hover and click!
-    const exportBtn = await page.$('button:has-text("Export .patch")');
-    if (exportBtn) {
-      const expBox = await exportBtn.boundingBox();
-      if (expBox) {
-        await smoothMove(page, curX, curY, expBox.x + expBox.width / 2, expBox.y + expBox.height / 2, 600);
-        curX = expBox.x + expBox.width / 2; curY = expBox.y + expBox.height / 2;
-        await Promise.all([
-          page.waitForEvent('download', { timeout: 4000 }).catch(() => null),
-          clickAt(page, curX, curY)
-        ]);
+      // Ensure cursor hovers on the button until narration line 4:
+      // "We click Export Patch to immediately" (starts at 7.632s in chunk_7.srt)
+      const now = (Date.now() - startTime) / 1000;
+      if (now < 7.65) {
+        console.log(`  Hovering on Export .patch button for ${(7.65 - now).toFixed(2)}s until narration click point (7.65s)...`);
+        await page.waitForTimeout((7.65 - now) * 1000);
       }
+
+      // Exact synchronized click right when narration says "We click Export Patch"
+      console.log(`  [${((Date.now() - startTime)/1000).toFixed(2)}s] CLICKING 'Export .patch' button!`);
+      await clickAt(page, curX, curY, 200);
+      console.log(`  [${((Date.now() - startTime)/1000).toFixed(2)}s] Export clicked! Button turned emerald green.`);
     }
-    await page.waitForTimeout(2000);
-    console.log('  Clicked Export .patch button...');
+
+    // 8.0s - 12.0s: Narration: "download a standard git-compatible unified patch"
+    // Hover on the green "Patch Exported! (.patch)" button showing successful confirmation
+    await page.waitForTimeout(2500);
+
+    // 12.0s - 15.3s: "file ready for pull request review"
+    // Gently glide cursor to the verified results / patch summary card below
+    await smoothMove(page, curX, curY, 520, 390, 800);
+    curX = 520; curY = 390;
   });
   }
 

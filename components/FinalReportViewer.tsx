@@ -9,6 +9,7 @@ interface FinalReportViewerProps {
 }
 
 export const FinalReportViewer: React.FC<FinalReportViewerProps> = ({ task }) => {
+  const [isDownloaded, setIsDownloaded] = React.useState(false);
   const report = task.finalReport;
 
   if (!report) {
@@ -26,7 +27,14 @@ export const FinalReportViewer: React.FC<FinalReportViewerProps> = ({ task }) =>
   }
 
   const handleDownloadPatch = () => {
-    window.open(`/api/tasks/${task.id}/download`, "_blank");
+    setIsDownloaded(true);
+    const link = document.createElement("a");
+    link.href = `/api/tasks/${task.id}/download`;
+    link.download = `agentforge-${task.projectId}.patch`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => setIsDownloaded(false), 8000);
   };
 
   return (
@@ -52,10 +60,23 @@ export const FinalReportViewer: React.FC<FinalReportViewerProps> = ({ task }) =>
 
         <button
           onClick={handleDownloadPatch}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-forge-950 font-semibold text-xs shadow-md shadow-cyan-500/20 transition-all shrink-0"
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs shadow-md transition-all shrink-0 ${
+            isDownloaded
+              ? "bg-emerald-500 text-forge-950 shadow-emerald-500/20 scale-105"
+              : "bg-cyan-500 hover:bg-cyan-400 text-forge-950 shadow-cyan-500/20"
+          }`}
         >
-          <Download className="w-4 h-4" />
-          Export .patch
+          {isDownloaded ? (
+            <>
+              <CheckCircle2 className="w-4 h-4 text-forge-950" />
+              <span>Patch Exported! (.patch)</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              <span>Export .patch</span>
+            </>
+          )}
         </button>
       </div>
 

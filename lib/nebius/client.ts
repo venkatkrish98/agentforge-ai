@@ -31,9 +31,7 @@ export class NebiusClient {
 
   public getMaskedKey(): string {
     if (!this.hasApiKey()) return "Not configured";
-    const key = this.apiKey.trim();
-    if (key.length <= 12) return "••••••••••••";
-    return `${key.substring(0, 8)}••••••••${key.substring(key.length - 8)}`;
+    return "•••••••••••••••••••••••• (Server-Isolated)";
   }
 
   public getBaseUrl(): string {

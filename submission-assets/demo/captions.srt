@@ -1,0 +1,260 @@
+﻿1
+00:00:00,121 --> 00:00:03,608
+Welcome to AgentForge AI, an AI-assisted
+
+2
+00:00:03,608 --> 00:00:06,443
+coding and test-repair workspace built for
+
+3
+00:00:06,443 --> 00:00:08,804
+the Nebius and NVIDIA Global AI
+
+4
+00:00:08,804 --> 00:00:12,994
+Hackathon. Most AI coding assistants act
+
+5
+00:00:12,994 --> 00:00:16,306
+as conversational chatbots that leave developers
+
+6
+00:00:16,306 --> 00:00:19,757
+to manually copy snippets, fix syntax
+
+7
+00:00:19,757 --> 00:00:24,975
+errors, and debug runtime failures. AgentForge
+
+8
+00:00:24,975 --> 00:00:28,075
+AI is fundamentally different: it turns
+
+9
+00:00:28,075 --> 00:00:31,333
+an issue into a reviewed, tested,
+
+10
+00:00:31,333 --> 00:00:33,751
+and evidence-backed repair loop with full
+
+11
+00:00:33,751 --> 00:00:36,880
+deterministic verification.
+
+12
+00:00:36,880 --> 00:00:39,629
+Here in our developer dashboard, we
+
+13
+00:00:39,629 --> 00:00:43,742
+select CalcVault, a financial math operations
+
+14
+00:00:43,742 --> 00:00:47,624
+engine. CalcVault has two critical unit
+
+15
+00:00:47,624 --> 00:00:51,606
+test failures: safeDivide returns NaN instead
+
+16
+00:00:51,606 --> 00:00:55,711
+of throwing DivisionByZeroError on zero divisor,
+
+17
+00:00:55,711 --> 00:00:58,424
+and the compound interest calculation has
+
+18
+00:00:58,424 --> 00:01:02,456
+rate scaling and exponent defects. Let's
+
+19
+00:01:02,456 --> 00:01:04,976
+start the repair run.
+
+20
+00:01:04,976 --> 00:01:08,126
+In Model Settings, AgentForge AI is
+
+21
+00:01:08,126 --> 00:01:11,527
+connected live to Nebius Token Factory,
+
+22
+00:01:11,527 --> 00:01:15,489
+streaming low-latency inference using NVIDIA Nemotron
+
+23
+00:01:15,489 --> 00:01:19,536
+3.5 Lightning. Nebius delivers fast completions
+
+24
+00:01:19,536 --> 00:01:23,486
+in under two seconds. All API
+
+25
+00:01:23,486 --> 00:01:28,021
+credentials remain strictly server-isolated, fully masked,
+
+26
+00:01:28,021 --> 00:01:30,856
+and never exposed to client bundles
+
+27
+00:01:30,856 --> 00:01:32,175
+or child processes.
+
+28
+00:01:32,175 --> 00:01:37,113
+Returning to the workspace, Nemotron analyzes
+
+29
+00:01:37,113 --> 00:01:40,988
+the repository AST and formulates a
+
+30
+00:01:40,988 --> 00:01:44,992
+four-phase plan: diagnose division checks, repair
+
+31
+00:01:44,992 --> 00:01:48,770
+compounding math, run the test suite,
+
+32
+00:01:48,770 --> 00:01:53,750
+and compile verification evidence. Switching to
+
+33
+00:01:53,750 --> 00:01:56,247
+the Code Diff tab, we see
+
+34
+00:01:56,247 --> 00:01:59,835
+the generated unified diff. It introduces
+
+35
+00:01:59,835 --> 00:02:02,666
+defensive zero guards and corrects the
+
+36
+00:02:02,666 --> 00:02:05,421
+compound interest formula with clean mathematical
+
+37
+00:02:05,421 --> 00:02:06,671
+precision.
+
+38
+00:02:05,794 --> 00:02:10,121
+Notice our core safety principle: the
+
+39
+00:02:10,121 --> 00:02:14,334
+Human Approval Gate. No files are
+
+40
+00:02:14,334 --> 00:02:16,034
+written to disk and no execution
+
+41
+00:02:16,034 --> 00:02:18,913
+occurs until an engineer reviews the
+
+42
+00:02:18,913 --> 00:02:22,791
+proposed diff. Developers can inspect exact
+
+43
+00:02:22,791 --> 00:02:26,350
+line additions and deletions, retaining complete
+
+44
+00:02:26,350 --> 00:02:28,961
+control with the choice to approve
+
+45
+00:02:28,961 --> 00:02:30,526
+or reject with instant rollback.
+
+46
+00:02:30,526 --> 00:02:34,150
+We click Approve and Run Tests.
+
+47
+00:02:34,150 --> 00:02:37,997
+The test runner executes as a
+
+48
+00:02:37,997 --> 00:02:40,394
+host subprocess governed by strict command
+
+49
+00:02:40,394 --> 00:02:44,283
+allowlists, directory containment, and purged environment
+
+50
+00:02:44,283 --> 00:02:48,341
+variables. Watch the real execution: all
+
+51
+00:02:48,341 --> 00:02:51,951
+five assertions pass with exit code
+
+52
+00:02:51,951 --> 00:02:53,996
+zero in just 174 milliseconds. Zero
+
+53
+00:02:53,996 --> 00:02:58,446
+division throws the expected error, and
+
+54
+00:02:58,446 --> 00:03:01,286
+financial compounding matches expected precision.
+
+55
+00:03:01,286 --> 00:03:06,189
+In the Final Report tab, AgentForge
+
+56
+00:03:06,189 --> 00:03:09,303
+AI synthesizes evidence: verified test checklists,
+
+57
+00:03:09,303 --> 00:03:14,448
+execution duration metrics, and loop detection
+
+58
+00:03:14,448 --> 00:03:18,324
+fingerprints. We click Export Patch to
+
+59
+00:03:18,324 --> 00:03:22,170
+immediately download a standard git-compatible unified
+
+60
+00:03:22,170 --> 00:03:25,808
+patch file ready for pull requests
+
+61
+00:03:25,808 --> 00:03:27,058
+or CI pipelines.
+
+62
+00:03:26,935 --> 00:03:30,950
+AgentForge AI brings deterministic evidence and
+
+63
+00:03:30,950 --> 00:03:34,201
+human oversight to generative coding, powered
+
+64
+00:03:34,201 --> 00:03:37,868
+by NVIDIA Nemotron on Nebius Token
+
+65
+00:03:37,868 --> 00:03:40,301
+Factory. Safe, verified, and developer-first.
+

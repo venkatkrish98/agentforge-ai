@@ -34,3 +34,10 @@ yarn-error.log*
 .DS_Store
 *.pem
 Thumbs.db
+
+# Demo large binary media & intermediate screenshots
+submission-assets/demo/*.mp4
+submission-assets/demo/*.wav
+submission-assets/demo/scene*.png
+submission-assets/demo/shot*.png
+!submission-assets/demo/thumbnail.png

@@ -58,6 +58,16 @@ export default function WorkspacePage() {
     fetchTasks();
   }, [fetchTasks]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as ActiveTab;
+      if (tabParam && ["overview", "plan", "diff", "tests", "timeline", "report"].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
   // Active task object
   const activeTask = tasks.find((t) => t.id === activeTaskId) || tasks[0] || null;
 

@@ -1,0 +1,36 @@
+1
+00:00:00,000 --> 00:00:02,260
+Here in the developer workbench, we
+
+2
+00:00:02,260 --> 00:00:04,520
+select CalcVault, a financial math operations
+
+3
+00:00:04,520 --> 00:00:06,780
+engine with two critical unit test
+
+4
+00:00:06,780 --> 00:00:09,040
+failures. Safe-divide returns NaN on a
+
+5
+00:00:09,040 --> 00:00:11,299
+zero denominator instead of throwing an
+
+6
+00:00:11,299 --> 00:00:13,559
+error, and compound interest calculations fail
+
+7
+00:00:13,559 --> 00:00:15,819
+due to rate scaling and an
+
+8
+00:00:15,819 --> 00:00:18,079
+exponent defect. Let's start the repair
+
+9
+00:00:18,079 --> 00:00:18,456
+run.
+

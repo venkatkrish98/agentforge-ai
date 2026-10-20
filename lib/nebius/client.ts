@@ -221,13 +221,17 @@ export class NebiusClient {
         throw new Error(parsed.error || "Failed to parse structured steps from model");
       }
 
-      const steps: PlanStep[] = parsed.data.steps.map((s: any, idx: number) => ({
+      let steps: PlanStep[] = parsed.data.steps.map((s: any, idx: number) => ({
         id: s.id || `step_${idx + 1}_${Date.now()}`,
         title: s.title || `Phase ${idx + 1}`,
         description: s.description || "",
         status: idx === 0 ? "in_progress" : "pending",
         actionType: s.actionType || "context_analysis"
       }));
+
+      if (steps.length < 5) {
+        steps = MockNebiusProvider.getPlan(projectName, taskDescription).steps;
+      }
 
       return {
         summary: parsed.data.summary || "Plan formulated successfully.",

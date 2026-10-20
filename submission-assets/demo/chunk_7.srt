@@ -1,0 +1,24 @@
+1
+00:00:00,000 --> 00:00:02,545
+In the Final Report tab, AgentForge
+
+2
+00:00:02,545 --> 00:00:05,091
+AI synthesizes evidence: verified test checklists,
+
+3
+00:00:05,091 --> 00:00:07,636
+duration metrics, and loop detection fingerprints.
+
+4
+00:00:07,636 --> 00:00:10,181
+We click Export Patch to immediately
+
+5
+00:00:10,181 --> 00:00:12,726
+download a standard git-compatible unified patch
+
+6
+00:00:12,726 --> 00:00:15,272
+file ready for pull request review.
+

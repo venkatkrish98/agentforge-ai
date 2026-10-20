@@ -1,0 +1,44 @@
+1
+00:00:00,000 --> 00:00:02,211
+Switching to the Code Diff tab,
+
+2
+00:00:02,211 --> 00:00:04,422
+we see the generated unified diff.
+
+3
+00:00:04,422 --> 00:00:06,632
+It introduces defensive zero guards and
+
+4
+00:00:06,632 --> 00:00:08,843
+corrects the compound interest formula. Notice
+
+5
+00:00:08,843 --> 00:00:11,054
+our core safety principle: the Human
+
+6
+00:00:11,054 --> 00:00:13,265
+Approval Gate. No files are written
+
+7
+00:00:13,265 --> 00:00:15,476
+to disk and no execution occurs
+
+8
+00:00:15,476 --> 00:00:17,686
+until an engineer reviews the proposed
+
+9
+00:00:17,686 --> 00:00:19,897
+diff. The developer maintains complete authority,
+
+10
+00:00:19,897 --> 00:00:22,108
+with the choice to approve or
+
+11
+00:00:22,108 --> 00:00:23,582
+reject with instant rollback.
+

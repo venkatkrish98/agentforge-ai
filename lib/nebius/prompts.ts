@@ -30,7 +30,13 @@ AVAILABLE PROJECT FILES:
 ${fileContext}
 
 INSTRUCTIONS:
-Analyze the task and project files. Formulate a structured step-by-step plan to implement the changes and verify test assertions.
+Analyze the task and project files. Formulate a structured 5-phase execution plan to implement the changes and verify test assertions:
+Phase 1: Inspect Codebase & Failing Assertions (context_analysis)
+Phase 2: Formulate Targeted Patch (patch_formulation)
+Phase 3: Apply Patch with Snapshot Guard (patch_application)
+Phase 4: Execute Test Suite in Sandbox (test_execution)
+Phase 5: Verify Test Evidence & Synthesize Report (final_verification)
+
 Return ONLY a valid JSON object matching this schema:
 {
   "summary": "Brief analysis of the task and discovered issues",
@@ -38,7 +44,7 @@ Return ONLY a valid JSON object matching this schema:
     {
       "id": "step_1",
       "title": "Short title",
-      "description": "Clear explanation of what will be done",
+      "description": "Clear explanation of what will be done in this phase",
       "actionType": "context_analysis" | "patch_formulation" | "patch_application" | "test_execution" | "failure_diagnosis" | "repair_iteration" | "final_verification"
     }
   ],

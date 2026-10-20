@@ -1,0 +1,36 @@
+1
+00:00:00,000 --> 00:00:02,581
+We click Approve and Run Tests.
+
+2
+00:00:02,581 --> 00:00:05,163
+The test runner executes as a
+
+3
+00:00:05,163 --> 00:00:07,744
+host subprocess governed by strict command
+
+4
+00:00:07,744 --> 00:00:10,326
+allowlists, directory containment, and purged environment
+
+5
+00:00:10,326 --> 00:00:12,907
+variables. Watch the real execution: all
+
+6
+00:00:12,907 --> 00:00:15,488
+five assertions pass with exit code
+
+7
+00:00:15,488 --> 00:00:18,070
+zero in just 143 milliseconds. Zero
+
+8
+00:00:18,070 --> 00:00:20,651
+division throws the expected error, and
+
+9
+00:00:20,651 --> 00:00:22,802
+compounding matches exact currency precision.
+

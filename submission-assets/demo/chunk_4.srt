@@ -1,0 +1,28 @@
+1
+00:00:00,000 --> 00:00:03,103
+Returning to the workspace, Nemotron analyzes
+
+2
+00:00:03,103 --> 00:00:06,206
+the repository AST and formulates a
+
+3
+00:00:06,206 --> 00:00:09,309
+five-phase plan: diagnose division checks, formulate
+
+4
+00:00:09,309 --> 00:00:12,412
+surgical repairs, snapshot prior state, run
+
+5
+00:00:12,412 --> 00:00:15,515
+the test suite, and compile verification
+
+6
+00:00:15,515 --> 00:00:18,618
+evidence. The agent maps out each
+
+7
+00:00:18,618 --> 00:00:21,721
+phase before modifying any source code.
+

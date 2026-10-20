@@ -1,0 +1,16 @@
+1
+00:00:00,000 --> 00:00:03,027
+AgentForge AI brings deterministic evidence and
+
+2
+00:00:03,027 --> 00:00:06,053
+human oversight to generative coding, powered
+
+3
+00:00:06,053 --> 00:00:09,080
+by NVIDIA Nemotron on Nebius Token
+
+4
+00:00:09,080 --> 00:00:11,602
+Factory. Safe, verified, and developer-first.
+

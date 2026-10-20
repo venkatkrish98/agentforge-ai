@@ -1,0 +1,36 @@
+1
+00:00:00,000 --> 00:00:02,599
+Welcome to AgentForge AI, an AI-assisted
+
+2
+00:00:02,599 --> 00:00:05,198
+coding and test-repair workspace built for
+
+3
+00:00:05,198 --> 00:00:07,797
+the Nebius and NVIDIA Global AI
+
+4
+00:00:07,797 --> 00:00:10,395
+Hackathon. Traditional AI coding assistants act
+
+5
+00:00:10,395 --> 00:00:12,994
+as conversational chatbots, leaving developers to
+
+6
+00:00:12,994 --> 00:00:15,593
+manually copy snippets, fix syntax errors,
+
+7
+00:00:15,593 --> 00:00:18,192
+and debug runtime failures. AgentForge AI
+
+8
+00:00:18,192 --> 00:00:20,791
+turns a coding task into an
+
+9
+00:00:20,791 --> 00:00:23,390
+evidence-backed, human-reviewed, and verified repair loop.
+

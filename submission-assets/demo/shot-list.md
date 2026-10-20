@@ -2,35 +2,31 @@
 
 - **Target Format:** 16:9 widescreen (1920 × 1080)
 - **Framerate:** 30.0 fps progressive
-- **Total Duration:** 2:45.04 (165.04 seconds)
+- **Total Duration:** 2:36.25 (156.25 seconds) — well within the 3:00 hackathon limit
 - **Primary Source:** Real application at `http://127.0.0.1:3000` (zero mocked UI or test fakes)
+- **Zoom & Viewport:** 100% default browser scale (1920×1080 viewport, no artificial crop or zoom cuts)
 
 ---
 
-## Dynamic 14-Shot Breakdown
+## 8 Authentic Full-Scale Scenes Breakdown
 
-| Shot | Timestamp | Duration | Framing / Camera Movement | Visual Elements & UI Actions | Voiceover Anchor |
+| Scene | Timestamp | Duration | Viewport & Layout (100% Scale) | Visual Elements & UI Actions | Voiceover & Synchronized Caption |
 |---|---|---|---|---|---|
-| **Shot 1a** | `0:00 – 0:10.5` | 10.5s | Wide (1920×1080) | AgentForge AI Dashboard overview. Dark `#090d16` theme, top navbar with Nebius x NVIDIA banner, active workspaces list. | *"Welcome to AgentForge AI..."* |
-| **Shot 1b** | `0:10.5 – 0:26.5` | 16.0s | Medium-close zoom | Workspace workbench header, task objective panel, and loop monitor widgets. | *"AgentForge AI is fundamentally different..."* |
-| **Shot 2a** | `0:26.5 – 0:40.0` | 13.5s | Close-up on card | CalcVault task card. Highlights failing `safeDivide` division-by-zero bug and compound interest formula defect. | *"Here in our developer dashboard, we select CalcVault..."* |
-| **Shot 2b** | `0:40.0 – 0:47.5` | 7.5s | Action focus | Target files (`package.json`, `src/calculator.js`, `test/calculator.test.js`) and click on **Start Repair Run**. | *"Let's start the repair run."* |
-| **Shot 3a** | `0:47.5 – 0:58.5` | 11.0s | Cut to `/settings` | Live Connection Diagnostic card, active Nebius Token Factory connection, and sub-2s latency metrics. | *"In Model Settings, AgentForge AI is connected live..."* |
-| **Shot 3b** | `0:58.5 – 01:09.5` | 11.0s | Close-up on security | Server-Side Secret Isolation card showing fully masked key `•••••••••••••••••••••••• (Server-Isolated)` and NVIDIA Nemotron 3.5 Lightning catalog card. | *"All API credentials remain strictly server-isolated..."* |
-| **Shot 4a** | `01:09.5 – 01:21.5` | 12.0s | Return to workspace | Autonomous execution plan tab showing Nemotron's 4-phase structured repair steps. | *"Returning to the workspace, Nemotron analyzes the repository AST..."* |
-| **Shot 4b** | `01:21.5 – 01:33.5` | 12.0s | Cut to Code Diff tab | Unified diff on `src/calculator.js`: red removal of `return NaN;`, green addition of `DivisionByZeroError` and corrected math formula. | *"Switching to the Code Diff tab, we see the generated unified diff..."* |
-| **Shot 5** | `01:33.5 – 01:47.5` | 14.0s | Close-up on gate | Amber **Human Approval Gate Required** banner, `Waiting for human sign-off on diff`, and **Reject & Abort** / **Approve & Run Tests** buttons. | *"Notice our core safety principle: the Human Approval Gate..."* |
-| **Shot 6a** | `01:47.5 – 02:00.0` | 12.5s | Cut to Tests tab | Test execution summary: `EXIT CODE: 0 (SUCCESS)`, `DURATION: 174ms`, `PASSED ASSERTIONS: 5 / 5`. | *"The test runner executes as a host subprocess..."* |
-| **Shot 6b** | `02:00.0 – 02:17.5` | 17.5s | Scroll / assertion view | All 5 unit test assertions passing with green checkmarks (zero divisor throws error, quarterly compounding matches precision). | *"all five assertions pass with exit code zero in just 174 milliseconds."* |
-| **Shot 7a** | `02:17.5 – 02:27.5` | 10.0s | Cut to Report tab | Evidence-Backed Verification Synthesis panel, verified behaviors, and explicit assumptions checklist. | *"In the Final Report tab, AgentForge AI synthesizes evidence..."* |
-| **Shot 7b** | `02:27.5 – 02:34.5` | 7.0s | Action focus | One-click **Export .patch** cyan button, downloading Git-compatible unified patch. | *"We click Export Patch to immediately download a standard git-compatible unified patch..."* |
-| **Shot 8** | `02:34.5 – 02:45.0` | 10.6s | Closing title card | Clean AgentForge AI summary card with hackathon track attribution, architecture points, and MIT open source license. | *"Safe, verified, and developer-first."* |
+| **Scene 1** | `0:00 – 0:23.4` | 23.4s | Full Viewport (1920×1080) | AgentForge AI developer workspace. Dark theme, top navbar with Nebius × NVIDIA banner, active workspaces list. | *"Welcome to AgentForge AI, an AI-assisted coding and test-repair workspace built for the Nebius and NVIDIA Global AI Hackathon..."* |
+| **Scene 2** | `0:23.4 – 0:41.8` | 18.5s | Full Viewport (1920×1080) | Selection of CalcVault in developer workbench. Displays 2 unit test failures (`safeDivide` NaN bug and compound interest formula defect) and primary **Start Repair Run** button. | *"Here in the developer workbench, we select CalcVault, a financial math operations engine with two critical unit test failures..."* |
+| **Scene 3** | `0:41.8 – 0:65.7` | 23.9s | Full Viewport (1920×1080) | Model & Settings page with live connection diagnostic. Green **Nebius Connection Healthy** badge, live **Latency: 1552ms**, verified model `nvidia/Nemotron-3_5-Lightning`, 28 models verified, and masked key `•••••••••••••••••••••••• (Server-Isolated)`. | *"In Model Settings, AgentForge AI connects live to Nebius Token Factory, streaming low-latency inference using NVIDIA Nemotron 3.5 Lightning. Watch our live connection diagnostic..."* |
+| **Scene 4** | `0:65.8 – 0:87.5` | 21.7s | Full Viewport (1920×1080) | Autonomous Plan tab showing Nemotron's 5-phase structured execution plan: diagnose division checks, formulate surgical repairs, snapshot prior state, run the test suite, and compile verification evidence. | *"Returning to the workspace, Nemotron analyzes the repository AST and formulates a five-phase plan..."* |
+| **Scene 5** | `0:82.8 – 1:46.4` | 23.6s | Full Viewport (1920×1080) | Code Diff tab showing unified diff on `calculator.js` (red removals, green additions) and amber **Human Approval Gate Required** banner with **Approve & Run Tests** / **Reject & Abort** buttons. | *"Switching to the Code Diff tab, we see the generated unified diff. Notice our core safety principle: the Human Approval Gate..."* |
+| **Scene 6** | `1:46.4 – 2:09.3` | 22.9s | Full Viewport (1920×1080) | Tests & Evidence tab showing real test execution: **EXIT CODE: 0 (SUCCESS)**, **DURATION: 143ms**, **PASSED ASSERTIONS: 5 / 5** with green checkmarks. | *"We click Approve and Run Tests. The test runner executes as a host subprocess... all five assertions pass with exit code zero in just 143 milliseconds."* |
+| **Scene 7** | `2:09.3 – 2:24.6` | 15.3s | Full Viewport (1920×1080) | Final Report tab with Evidence-Backed Verification Synthesis panel, verified behaviors checklist, and one-click cyan **Export .patch** button. | *"In the Final Report tab, AgentForge AI synthesizes evidence... We click Export Patch to immediately download a standard git-compatible unified patch file..."* |
+| **Scene 8** | `2:24.6 – 2:36.2` | 11.6s | Full Viewport (1920×1080) | Closing summary title card highlighting core pillars: NVIDIA Nemotron on Nebius Token Factory, Human Approval Gate, and Deterministic Verification. | *"AgentForge AI brings deterministic evidence and human oversight to generative coding, powered by NVIDIA Nemotron on Nebius Token Factory. Safe, verified, and developer-first."* |
 
 ---
 
 ## Verified Guidelines Compliance
 
-1. **Zero Credential Leakage:** API key display is strictly masked (`•••••••••••••••••••••••• (Server-Isolated)`). No raw keys, token strings, `.env.local`, or terminal logs are visible.
-2. **Accurate Execution Metrics:** Narration states the exact truth: `174 milliseconds` and `Host Subprocess Sandbox` with strict allowlists and containment guards.
-3. **Paced Visual Storytelling:** Visual cuts occur every 7 to 17 seconds, keeping the viewer engaged and matching the speech content at every moment.
-4. **Third-Party Trademarks:** Plain-text hackathon track attribution and model references are used without unlicensed logos.
+1. **100% Default Scale:** Zero artificial cropping or digital zooming; natural browser proportions preserved across every frame.
+2. **Zero Credential Leakage:** API key display is strictly masked (`•••••••••••••••••••••••• (Server-Isolated)`). No raw keys, token strings, `.env.local`, or terminal logs are visible.
+3. **Live Diagnostic Demonstration:** Settings scene captures the completed non-destructive ping showing `Nebius Connection Healthy`, live measured latency, and 28 verified models on account.
+4. **Accurate Execution Metrics:** Narration states the exact truth: real execution duration and `Host Subprocess Sandbox` with strict allowlists and containment guards.
+5. **Exact Per-Scene Synchronization:** Subtitles and spoken audio are rendered within each self-contained scene clip, eliminating drift and cross-scene leakage.

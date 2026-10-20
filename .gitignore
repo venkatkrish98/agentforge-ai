@@ -27,6 +27,9 @@ workspaces-data/
 scratch/
 *.log
 
+# TypeScript build info
+tsconfig.tsbuildinfo
+
 # Debug and OS files
 npm-debug.log*
 yarn-debug.log*
@@ -40,4 +43,9 @@ submission-assets/demo/*.mp4
 submission-assets/demo/*.wav
 submission-assets/demo/scene*.png
 submission-assets/demo/shot*.png
+submission-assets/demo/chk_*.png
+submission-assets/demo/test_*.png
+submission-assets/demo/vf_*.png
+submission-assets/demo/live_clips/
+submission-assets/demo/test_*/
 !submission-assets/demo/thumbnail.png

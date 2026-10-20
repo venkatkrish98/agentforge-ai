@@ -1,260 +1,256 @@
-﻿1
-00:00:00,121 --> 00:00:03,608
+1
+00:00:00,000 --> 00:00:02,599
 Welcome to AgentForge AI, an AI-assisted
 
 2
-00:00:03,608 --> 00:00:06,443
+00:00:02,599 --> 00:00:05,198
 coding and test-repair workspace built for
 
 3
-00:00:06,443 --> 00:00:08,804
+00:00:05,198 --> 00:00:07,797
 the Nebius and NVIDIA Global AI
 
 4
-00:00:08,804 --> 00:00:12,994
-Hackathon. Most AI coding assistants act
+00:00:07,797 --> 00:00:10,395
+Hackathon. Traditional AI coding assistants act
 
 5
-00:00:12,994 --> 00:00:16,306
-as conversational chatbots that leave developers
+00:00:10,395 --> 00:00:12,994
+as conversational chatbots, leaving developers to
 
 6
-00:00:16,306 --> 00:00:19,757
-to manually copy snippets, fix syntax
+00:00:12,994 --> 00:00:15,593
+manually copy snippets, fix syntax errors,
 
 7
-00:00:19,757 --> 00:00:24,975
-errors, and debug runtime failures. AgentForge
+00:00:15,593 --> 00:00:18,192
+and debug runtime failures. AgentForge AI
 
 8
-00:00:24,975 --> 00:00:28,075
-AI is fundamentally different: it turns
+00:00:18,192 --> 00:00:20,791
+turns a coding task into an
 
 9
-00:00:28,075 --> 00:00:31,333
-an issue into a reviewed, tested,
+00:00:20,791 --> 00:00:23,390
+evidence-backed, human-reviewed, and verified repair loop.
 
 10
-00:00:31,333 --> 00:00:33,751
-and evidence-backed repair loop with full
+00:00:23,390 --> 00:00:25,649
+Here in the developer workbench, we
 
 11
-00:00:33,751 --> 00:00:36,880
-deterministic verification.
-
-12
-00:00:36,880 --> 00:00:39,629
-Here in our developer dashboard, we
-
-13
-00:00:39,629 --> 00:00:43,742
+00:00:25,649 --> 00:00:27,909
 select CalcVault, a financial math operations
 
+12
+00:00:27,909 --> 00:00:30,169
+engine with two critical unit test
+
+13
+00:00:30,169 --> 00:00:32,429
+failures. Safe-divide returns NaN on a
+
 14
-00:00:43,742 --> 00:00:47,624
-engine. CalcVault has two critical unit
+00:00:32,429 --> 00:00:34,689
+zero denominator instead of throwing an
 
 15
-00:00:47,624 --> 00:00:51,606
-test failures: safeDivide returns NaN instead
+00:00:34,689 --> 00:00:36,949
+error, and compound interest calculations fail
 
 16
-00:00:51,606 --> 00:00:55,711
-of throwing DivisionByZeroError on zero divisor,
+00:00:36,949 --> 00:00:39,209
+due to rate scaling and an
 
 17
-00:00:55,711 --> 00:00:58,424
-and the compound interest calculation has
+00:00:39,209 --> 00:00:41,469
+exponent defect. Let's start the repair
 
 18
-00:00:58,424 --> 00:01:02,456
-rate scaling and exponent defects. Let's
+00:00:41,469 --> 00:00:41,845
+run.
 
 19
-00:01:02,456 --> 00:01:04,976
-start the repair run.
+00:00:41,845 --> 00:00:44,603
+In Model Settings, AgentForge AI connects
 
 20
-00:01:04,976 --> 00:01:08,126
-In Model Settings, AgentForge AI is
+00:00:44,603 --> 00:00:47,361
+live to Nebius Token Factory, streaming
 
 21
-00:01:08,126 --> 00:01:11,527
-connected live to Nebius Token Factory,
+00:00:47,361 --> 00:00:50,118
+low-latency inference using NVIDIA Nemotron 3.5
 
 22
-00:01:11,527 --> 00:01:15,489
-streaming low-latency inference using NVIDIA Nemotron
+00:00:50,118 --> 00:00:52,876
+Lightning. Watch our live connection diagnostic:
 
 23
-00:01:15,489 --> 00:01:19,536
-3.5 Lightning. Nebius delivers fast completions
+00:00:52,876 --> 00:00:55,634
+the verification ping succeeds with healthy
 
 24
-00:01:19,536 --> 00:01:23,486
-in under two seconds. All API
+00:00:55,634 --> 00:00:58,392
+latency and zero authentication errors. All
 
 25
-00:01:23,486 --> 00:01:28,021
-credentials remain strictly server-isolated, fully masked,
+00:00:58,392 --> 00:01:01,149
+API credentials remain strictly server-isolated, fully
 
 26
-00:01:28,021 --> 00:01:30,856
-and never exposed to client bundles
+00:01:01,149 --> 00:01:03,907
+masked, and never exposed to client
 
 27
-00:01:30,856 --> 00:01:32,175
-or child processes.
+00:01:03,907 --> 00:01:05,746
+bundles or child processes.
 
 28
-00:01:32,175 --> 00:01:37,113
+00:01:05,746 --> 00:01:08,374
 Returning to the workspace, Nemotron analyzes
 
 29
-00:01:37,113 --> 00:01:40,988
+00:01:08,374 --> 00:01:11,003
 the repository AST and formulates a
 
 30
-00:01:40,988 --> 00:01:44,992
+00:01:11,003 --> 00:01:13,632
 four-phase plan: diagnose division checks, repair
 
 31
-00:01:44,992 --> 00:01:48,770
+00:01:13,632 --> 00:01:16,261
 compounding math, run the test suite,
 
 32
-00:01:48,770 --> 00:01:53,750
-and compile verification evidence. Switching to
+00:01:16,261 --> 00:01:18,890
+and compile verification evidence. The agent
 
 33
-00:01:53,750 --> 00:01:56,247
-the Code Diff tab, we see
+00:01:18,890 --> 00:01:21,519
+maps out each phase before modifying
 
 34
-00:01:56,247 --> 00:01:59,835
-the generated unified diff. It introduces
+00:01:21,519 --> 00:01:22,834
+any source code.
 
 35
-00:01:59,835 --> 00:02:02,666
-defensive zero guards and corrects the
+00:01:22,834 --> 00:01:25,044
+Switching to the Code Diff tab,
 
 36
-00:02:02,666 --> 00:02:05,421
-compound interest formula with clean mathematical
+00:01:25,044 --> 00:01:27,255
+we see the generated unified diff.
 
 37
-00:02:05,421 --> 00:02:06,671
-precision.
+00:01:27,255 --> 00:01:29,466
+It introduces defensive zero guards and
 
 38
-00:02:05,794 --> 00:02:10,121
-Notice our core safety principle: the
+00:01:29,466 --> 00:01:31,677
+corrects the compound interest formula. Notice
 
 39
-00:02:10,121 --> 00:02:14,334
-Human Approval Gate. No files are
+00:01:31,677 --> 00:01:33,888
+our core safety principle: the Human
 
 40
-00:02:14,334 --> 00:02:16,034
-written to disk and no execution
+00:01:33,888 --> 00:01:36,098
+Approval Gate. No files are written
 
 41
-00:02:16,034 --> 00:02:18,913
-occurs until an engineer reviews the
+00:01:36,098 --> 00:01:38,309
+to disk and no execution occurs
 
 42
-00:02:18,913 --> 00:02:22,791
-proposed diff. Developers can inspect exact
+00:01:38,309 --> 00:01:40,520
+until an engineer reviews the proposed
 
 43
-00:02:22,791 --> 00:02:26,350
-line additions and deletions, retaining complete
+00:01:40,520 --> 00:01:42,731
+diff. The developer maintains complete authority,
 
 44
-00:02:26,350 --> 00:02:28,961
-control with the choice to approve
+00:01:42,731 --> 00:01:44,942
+with the choice to approve or
 
 45
-00:02:28,961 --> 00:02:30,526
-or reject with instant rollback.
+00:01:44,942 --> 00:01:46,415
+reject with instant rollback.
 
 46
-00:02:30,526 --> 00:02:34,150
+00:01:46,415 --> 00:01:48,997
 We click Approve and Run Tests.
 
 47
-00:02:34,150 --> 00:02:37,997
+00:01:48,997 --> 00:01:51,578
 The test runner executes as a
 
 48
-00:02:37,997 --> 00:02:40,394
+00:01:51,578 --> 00:01:54,160
 host subprocess governed by strict command
 
 49
-00:02:40,394 --> 00:02:44,283
+00:01:54,160 --> 00:01:56,741
 allowlists, directory containment, and purged environment
 
 50
-00:02:44,283 --> 00:02:48,341
+00:01:56,741 --> 00:01:59,322
 variables. Watch the real execution: all
 
 51
-00:02:48,341 --> 00:02:51,951
+00:01:59,322 --> 00:02:01,904
 five assertions pass with exit code
 
 52
-00:02:51,951 --> 00:02:53,996
-zero in just 174 milliseconds. Zero
+00:02:01,904 --> 00:02:04,485
+zero in just 143 milliseconds. Zero
 
 53
-00:02:53,996 --> 00:02:58,446
+00:02:04,485 --> 00:02:07,067
 division throws the expected error, and
 
 54
-00:02:58,446 --> 00:03:01,286
-financial compounding matches expected precision.
+00:02:07,067 --> 00:02:09,218
+compounding matches exact currency precision.
 
 55
-00:03:01,286 --> 00:03:06,189
+00:02:09,218 --> 00:02:11,763
 In the Final Report tab, AgentForge
 
 56
-00:03:06,189 --> 00:03:09,303
+00:02:11,763 --> 00:02:14,308
 AI synthesizes evidence: verified test checklists,
 
 57
-00:03:09,303 --> 00:03:14,448
-execution duration metrics, and loop detection
+00:02:14,308 --> 00:02:16,853
+duration metrics, and loop detection fingerprints.
 
 58
-00:03:14,448 --> 00:03:18,324
-fingerprints. We click Export Patch to
+00:02:16,853 --> 00:02:19,399
+We click Export Patch to immediately
 
 59
-00:03:18,324 --> 00:03:22,170
-immediately download a standard git-compatible unified
+00:02:19,399 --> 00:02:21,944
+download a standard git-compatible unified patch
 
 60
-00:03:22,170 --> 00:03:25,808
-patch file ready for pull requests
+00:02:21,944 --> 00:02:24,489
+file ready for pull request review.
 
 61
-00:03:25,808 --> 00:03:27,058
-or CI pipelines.
-
-62
-00:03:26,935 --> 00:03:30,950
+00:02:24,489 --> 00:02:27,516
 AgentForge AI brings deterministic evidence and
 
-63
-00:03:30,950 --> 00:03:34,201
+62
+00:02:27,516 --> 00:02:30,543
 human oversight to generative coding, powered
 
-64
-00:03:34,201 --> 00:03:37,868
+63
+00:02:30,543 --> 00:02:33,569
 by NVIDIA Nemotron on Nebius Token
 
-65
-00:03:37,868 --> 00:03:40,301
+64
+00:02:33,569 --> 00:02:36,092
 Factory. Safe, verified, and developer-first.
 

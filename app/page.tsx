@@ -44,7 +44,8 @@ export default function WorkspacePage() {
       if (data.tasks) {
         setTasks(data.tasks);
         if (!activeTaskId && data.tasks.length > 0) {
-          setActiveTaskId(data.tasks[0].id);
+          const urlTask = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("task") : null;
+          setActiveTaskId(urlTask || data.tasks[0].id);
         }
       }
     } catch (err) {
@@ -64,6 +65,10 @@ export default function WorkspacePage() {
       const tabParam = params.get("tab") as ActiveTab;
       if (tabParam && ["overview", "plan", "diff", "tests", "timeline", "report"].includes(tabParam)) {
         setActiveTab(tabParam);
+      }
+      const taskParam = params.get("task");
+      if (taskParam) {
+        setActiveTaskId(taskParam);
       }
     }
   }, []);
@@ -137,9 +142,8 @@ export default function WorkspacePage() {
       const data = await res.json();
       if (data.task) {
         setTasks((prev) => prev.map((t) => (t.id === data.task.id ? data.task : t)));
-        if (data.task.status === "success") {
-          setActiveTab("report");
-        }
+        // User stays on tests tab to view real test execution and assertions
+        // They can review results and then click Final Report tab
       }
     } catch (err) {
       console.error("Approval execution error:", err);

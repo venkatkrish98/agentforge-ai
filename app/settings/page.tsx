@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { VERIFIED_NEBIUS_MODELS, ModelInfo, ConnectionTestResult } from "@/lib/types/models";
 import { Cpu, ShieldCheck, CheckCircle2, XCircle, Clock, Zap, Key, ExternalLink, RefreshCw, Server } from "lucide-react";
@@ -19,20 +19,7 @@ export default function SettingsPage() {
   const [isTesting, setIsTesting] = useState(false);
   const [selectedModelForTest, setSelectedModelForTest] = useState("nvidia/Nemotron-3_5-Lightning");
 
-  useEffect(() => {
-    async function loadConfig() {
-      try {
-        const res = await fetch("/api/models");
-        const data = await res.json();
-        setModelConfig(data);
-      } catch (err) {
-        console.error("Failed loading model config:", err);
-      }
-    }
-    loadConfig();
-  }, []);
-
-  const handleTestConnection = async () => {
+  const handleTestConnection = useCallback(async () => {
     setIsTesting(true);
     try {
       const res = await fetch("/api/models/test", {
@@ -58,7 +45,29 @@ export default function SettingsPage() {
     } finally {
       setIsTesting(false);
     }
-  };
+  }, [selectedModelForTest]);
+
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/models");
+        const data = await res.json();
+        setModelConfig(data);
+      } catch (err) {
+        console.error("Failed loading model config:", err);
+      }
+    }
+    loadConfig();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("test") === "1") {
+        handleTestConnection();
+      }
+    }
+  }, [handleTestConnection]);
 
   return (
     <div className="flex flex-col min-h-screen bg-forge-950">

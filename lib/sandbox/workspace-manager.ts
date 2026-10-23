@@ -3,7 +3,10 @@ import path from "node:path";
 import { ProjectContextFile } from "@/lib/types/task";
 import { validateSafePathWithSymlinkGuard, isPathInside } from "./path-validator";
 
-const RUNS_ROOT = path.resolve(process.cwd(), "workspaces-data", "runs");
+const RUNS_ROOT = path.resolve(
+  process.env.VERCEL ? "/tmp/workspaces-data/runs" : process.cwd(),
+  process.env.VERCEL ? "" : path.join("workspaces-data", "runs")
+);
 
 /**
  * Prepares an isolated directory for a task execution run.

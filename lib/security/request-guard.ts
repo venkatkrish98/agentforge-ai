@@ -51,13 +51,23 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
   const secFetchSite = req.headers.get("sec-fetch-site");
   const customHeader = req.headers.get("x-agentforge-request");
 
-  // 1. Host header validation against DNS rebinding (supports IPv4, localhost, and IPv6 [::1])
+  // Helper to test if a hostname is permitted (loopback hosts or deployed Vercel domain)
+  const isPermittedHost = (hostname: string) => {
+    const lower = hostname.toLowerCase();
+    const clean = lower.startsWith("[") && lower.endsWith("]") ? lower.slice(1, -1) : lower;
+    if (ALLOWED_LOOPBACK_HOSTS.has(lower) || ALLOWED_LOOPBACK_HOSTS.has(clean)) return true;
+    if (process.env.VERCEL && (lower.endsWith(".vercel.app") || lower.includes("vercel"))) return true;
+    if (process.env.ALLOWED_HOSTS?.split(",").map((h) => h.trim().toLowerCase()).includes(lower)) return true;
+    return false;
+  };
+
+  // 1. Host header validation against DNS rebinding (supports IPv4, localhost, IPv6 [::1], and Vercel cloud domains)
   const hostName = extractHostname(host);
-  if (hostName && !ALLOWED_LOOPBACK_HOSTS.has(hostName)) {
+  if (hostName && !isPermittedHost(hostName)) {
     return {
       isAllowed: false,
       errorResponse: NextResponse.json(
-        { error: `Forbidden: Untrusted Host '${hostName}'. Only loopback hosts (localhost, 127.0.0.1, [::1]) are permitted.` },
+        { error: `Forbidden: Untrusted Host '${hostName}'.` },
         { status: 403 }
       )
     };
@@ -74,22 +84,15 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
     };
   }
 
-  // Helper to test if a hostname is strictly a known loopback host
-  const isLocalHost = (hostname: string) => {
-    const lower = hostname.toLowerCase();
-    const clean = lower.startsWith("[") && lower.endsWith("]") ? lower.slice(1, -1) : lower;
-    return ALLOWED_LOOPBACK_HOSTS.has(lower) || ALLOWED_LOOPBACK_HOSTS.has(clean);
-  };
-
   // 3. Validate Origin header if present
   if (origin) {
     try {
       const originUrl = new URL(origin);
-      if (!isLocalHost(originUrl.hostname)) {
+      if (!isPermittedHost(originUrl.hostname)) {
         return {
           isAllowed: false,
           errorResponse: NextResponse.json(
-            { error: `Forbidden: Untrusted origin '${origin}'. Only loopback origins are permitted.` },
+            { error: `Forbidden: Untrusted origin '${origin}'.` },
             { status: 403 }
           )
         };
@@ -109,11 +112,11 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
   if (referer) {
     try {
       const refererUrl = new URL(referer);
-      if (!isLocalHost(refererUrl.hostname)) {
+      if (!isPermittedHost(refererUrl.hostname)) {
         return {
           isAllowed: false,
           errorResponse: NextResponse.json(
-            { error: `Forbidden: Untrusted referer '${referer}'. Only loopback referers are permitted.` },
+            { error: `Forbidden: Untrusted referer '${referer}'.` },
             { status: 403 }
           )
         };
@@ -133,7 +136,7 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
   let hasLocalOrigin = false;
   if (origin) {
     try {
-      hasLocalOrigin = isLocalHost(new URL(origin).hostname);
+      hasLocalOrigin = isPermittedHost(new URL(origin).hostname);
     } catch {
       hasLocalOrigin = false;
     }
@@ -142,7 +145,7 @@ export function validateLocalMutationRequest(req: Request): RequestGuardResult {
   let hasLocalReferer = false;
   if (referer) {
     try {
-      hasLocalReferer = isLocalHost(new URL(referer).hostname);
+      hasLocalReferer = isPermittedHost(new URL(referer).hostname);
     } catch {
       hasLocalReferer = false;
     }

@@ -3,7 +3,10 @@ import { SAMPLE_PROJECTS } from "@/lib/sample-projects";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const DATA_DIR = path.resolve(process.cwd(), "workspaces-data");
+const DATA_DIR = path.resolve(
+  process.env.VERCEL ? "/tmp/workspaces-data" : process.cwd(),
+  process.env.VERCEL ? "" : "workspaces-data"
+);
 const TASKS_FILE = path.join(DATA_DIR, "tasks.json");
 
 class TaskStore {
